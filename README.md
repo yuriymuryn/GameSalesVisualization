@@ -17,6 +17,7 @@ Publisher info should be grouped by year.
 ## Sales by region & Best-Selling Platform
  
 ![alt text](img/vis2.PNG "Visualization 2&3")
+
 Filter by year.
 Switch between % and sales number in vis 2.
 
