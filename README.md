@@ -16,7 +16,7 @@ Publisher info should be grouped by year.
 
 ## Sales by region & Best-Selling Platform
  
-![alt text](img/vis2.png "Visualization 2&3")
+![alt text](img/vis2.PNG "Visualization 2&3")
 Filter by year.
 Switch between % and sales number in vis 2.
 
@@ -24,7 +24,7 @@ Switch between % and sales number in vis 2.
 ## Gender distribution by year
 http://bl.ocks.org/dbuezas/9306799
 
-![alt text](img/vis3.png "Visualization 4")
+![alt text](img/vis3.PNG "Visualization 4")
 
 Scroll with year and pie chart should adapt.
 Play button.
