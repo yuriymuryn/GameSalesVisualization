@@ -41,10 +41,10 @@ function parseDataset(data) {
 
 function generateScoreVsSales(data) {
     var margin = {top: 30, right: 50, bottom: 40, left:40};
-	var width = 960 - margin.left - margin.right;
-	var height = 500 - margin.top - margin.bottom;
+	var width = 600 - margin.left - margin.right;
+	var height = 400 - margin.top - margin.bottom;
 
-	var svg = d3.select('body')
+	var svg = d3.select('#visualisationX')
 		.append('svg')
 		.attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)

@@ -1,0 +1,61 @@
+body {
+    background-color: #416f6f;
+}
+
+.maincontent {
+    background-color: white;
+    width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100px;
+    margin-bottom: 20px;
+}
+
+.header {
+    background-color: darkslategray;
+    text-align: center;
+    padding: 50px;
+}
+
+.header h3 {
+    font-size: 40px;
+    color: white;
+    font-family: 'Oxygen', sans-serif;
+    margin-top: -20px;
+    text-transform: uppercase;
+}
+.header p {
+    font-size: 20px;
+    color: white;
+    font-family: 'Oxygen', sans-serif;
+}
+#headerimg {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    width: 200px;
+}
+
+.vis_div {
+    padding-top: 30px;
+    padding-bottom: 20px;
+}
+.vis svg{
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.vis_title {
+    font-size: 30px;
+    color: black;
+    font-family: 'Oxygen', sans-serif;
+    text-align: center;
+}
+
+.vis_text {
+    font-size: 17px;
+    color: black;
+    font-family: 'Oxygen', sans-serif;
+    text-align: center;
+}
