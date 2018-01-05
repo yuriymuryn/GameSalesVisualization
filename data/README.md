@@ -26,12 +26,12 @@ https://www.kaggle.com/kendallgillies/video-game-sales-and-ratings
 
 **Global_Sales** - Total worldwide sales (in millions)
 
-**Critic_score** - Aggregate score compiled by Metacritic staff
+**Critic_Score** - Aggregate score compiled by Metacritic staff
 
-**Critic_count** - The number of critics used in coming up with the critic score
+**Critic_Count** - The number of critics used in coming up with the critic score
 
-**User_score** - Score by Metacritic's subscribers
+**User_Score** - Score by Metacritic's subscribers
 
-**User_count** - Number of users who gave the user score
+**User_Count** - Number of users who gave the user score
 
 **Rating** - The ESRB ratings

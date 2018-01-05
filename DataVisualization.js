@@ -22,23 +22,26 @@ $(document).ready(function(){
 
 function parseDataset(data) {
     console.log(data);
-    var score_vs_sales = [];
-
+    var sales_year_location = {}; 
+    // len = data.length
     for (var i = 0, len = data.length; i < len; i++) {
+        // line processing
+        processSalesByYearAndLocation(sales_year_location, data[i]);
 
-        /* SCORES VS SALES */
+        /* SCORES VS SALES 
         if (data[i].Critic_Score)
             score_vs_sales.push([+data[i].Critic_Score, +data[i].Global_Sales, "critic"]);
         if (data[i].User_Score)
-            score_vs_sales.push([+data[i].User_Score * 10, +data[i].Global_Sales, "user"]);
+            score_vs_sales.push([+data[i].User_Score * 10, +data[i].Global_Sales, "user"]);*/
     }
-    console.log(score_vs_sales);
     
-
-    generateScoreVsSales(score_vs_sales);
+    console.log(sales_year_location);
+    locations_label = ["Europe", "North America", "Japan", "Rest of the Word", "Total"]
+    generateSalesByYearAndLocation(sales_year_location, locations_label, "#salesYearLocation");
 }
 
 
+// TODO ja nao e mais usada, deixo para ja para ver o exemplo
 function generateScoreVsSales(data) {
     var margin = {top: 30, right: 50, bottom: 40, left:40};
 	var width = 600 - margin.left - margin.right;
