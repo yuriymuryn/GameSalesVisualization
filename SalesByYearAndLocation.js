@@ -25,6 +25,10 @@ function SalesByYearAndLocation() {
 
     this.transition_time = 1000;
 
+    this.selected_year;
+    this.selected_location;
+    this.selected_view = 0; // 0 - # ; 1 - %
+
     this.processRow = function(row) {
         var year = +row.Year_of_Release,
         eu = +row.EU_Sales || 0,
@@ -93,22 +97,23 @@ function SalesByYearAndLocation() {
         this.yaxistext.text("Game Sales (in millions)");
         
         /* LEGEND */
-        var legend =  this.svg.append("g")
+        this.legend =  this.svg.append("g")
             .attr("transform", "translate(0," + (this.height - this.l_height) + ")")
             .attr("text-anchor", "middle")
             .attr("class", "legendTitle")
             .selectAll("g")
             .data(this.location_lagend)
             .enter().append("g")
+                .on("click", callbackClickLocation)
                 .attr("transform", function(d, i) { return "translate("+ (i * self.width/4) +", 0)"; });
         
-        legend.append("rect")
+        this.legend.append("rect")
             .attr("x", 1)
             .attr("width", self.width/4 - 2)
             .attr("height", 10)
             .attr("fill", this.z);
         
-        legend.append("text")
+        this.legend.append("text")
             .attr("x", self.width/8)
             .attr("y", 20)
             .attr("dy", "0.5em")
@@ -124,14 +129,13 @@ function SalesByYearAndLocation() {
         this.serie.selectAll("rect")
             .data(function(d) { return d; })
             .enter().append("rect")
-            .attr("x", function(d) { return self.x(d.data.year); })
-            .attr("y", function(d) { return self.y(d[1]); })
-            .attr("height", function(d) { return self.y(d[0]) - self.y(d[1]); })
-                .transition()
-                .delay(function(d, i) { return i * 20; })
-            .attr("width", this.x.bandwidth());
-
-        
+                .on("click", callbackClickYear)
+                .attr("x", function(d) { return self.x(d.data.year); })
+                .attr("y", function(d) { return self.y(d[1]); })
+                .attr("height", function(d) { return self.y(d[0]) - self.y(d[1]); })
+                    .transition()
+                    .delay(function(d, i) { return i * 20; })
+                .attr("width", this.x.bandwidth());
     }
 
     this.processData = function() {
@@ -152,31 +156,8 @@ function SalesByYearAndLocation() {
         var btnPerc=$('<input/>').attr({ type: "button", id: "changePercSales", value: "Sales %", class: "totalSalesButton" });
         $(div_id).append(btnPerc);
 
-        btnTotal.on("click", function() {
-            self.y.domain([0, self.maxY]).nice();
-
-            var trans = self.svg.transition().duration(self.transition_time);
-            trans.selectAll(".serie")
-                .selectAll("rect")
-                    .attr("y", function(d) { return self.y(d[1]); })
-                    .attr("height", function(d) { return self.y(d[0]) - self.y(d[1]); });
-           
-            self.yaxistext.transition().delay(self.transition_time).text("Game Sales (in millions)");
-		    self.yaxis.transition().duration(self.transition_time).call(d3.axisLeft(self.y).ticks(null, "s"));
-        });
-
-        btnPerc.on("click", function() {
-            self.y.domain([0, 100]);
-            
-            var trans = self.svg.transition().duration(self.transition_time);
-            trans.selectAll(".serie")
-                .selectAll("rect")
-                    .attr("y", function(d) { return self.y(d[1]/d.data.total*100); })
-                    .attr("height", function(d) { return self.y(d[0]/d.data.total*100) - self.y(d[1]/d.data.total*100); });
-           
-            self.yaxistext.transition().delay(self.transition_time*0.6).text("Game Sales %"); 
-		    self.yaxis.transition().duration(self.transition_time*0.6).call(d3.axisLeft(self.y).ticks(null, "s"));
-        });
+        btnTotal.on("click", btnTotalCallback);
+        btnPerc.on("click", btnPercCallback);
     }
 
     this.getSizes = function(div_id){
@@ -188,6 +169,125 @@ function SalesByYearAndLocation() {
         this.c_margin = {top: 20, right: 40, bottom: 40, left:60};
         this.c_width = this.width - this.c_margin.left - this.c_margin.right;
         this.c_height = this.height - this.l_height - this.c_margin.top - this.c_margin.bottom;
+    }
+
+    function btnTotalCallback() {
+        self.selected_view = 0;
+        
+        self.y.domain([0, self.maxY]).nice();
+
+        var trans = self.svg.transition().duration(self.transition_time);
+        trans.selectAll(".serie")
+            .selectAll("rect")
+                .attr("y", function(d) { return self.y(d[1]); })
+                .attr("height", function(d) { return self.y(d[0]) - self.y(d[1]); });
+       
+        self.yaxistext.transition().delay(self.transition_time*0.6).text("Game Sales (in millions)");
+        self.yaxis.transition().duration(self.transition_time).call(d3.axisLeft(self.y).ticks(null, "s"));
+
+        self.legend.style("opacity", 1);
+        self.selected_location = null;
+    }
+    function btnPercCallback() {
+        self.selected_view = 1;
+
+        self.y.domain([0, 100]);
+        
+        var trans = self.svg.transition().duration(self.transition_time);
+        trans.selectAll(".serie")
+            .selectAll("rect")
+                .attr("y", function(d) { return self.y(d[1]/d.data.total*100); })
+                .attr("height", function(d) { return self.y(d[0]/d.data.total*100) - self.y(d[1]/d.data.total*100); });
+       
+        self.yaxistext.transition().delay(self.transition_time*0.6).text("Game Sales %"); 
+        self.yaxis.transition().duration(self.transition_time).call(d3.axisLeft(self.y).ticks(null, "s"));
+
+        self.legend.style("opacity", 1);
+        self.selected_location = null;
+    }
+
+    function callbackClickYear(d){
+        let selectedYear = d.data.year;
+        if (self.selected_year == selectedYear) {
+            self.serie.selectAll("rect").style("opacity", 1);
+            self.selected_year = null;                        
+        }
+        else {
+            self.serie.selectAll("rect")
+                .style("opacity", function(d) {
+                    return d.data.year == selectedYear ? 1 : 0.6;
+                });
+            self.selected_year = selectedYear;
+        }
+    }
+
+    function callbackClickLocation(d){
+        let selectedLocation = d;
+        var idx = self.location_lagend.indexOf(d);
+
+        if (self.selected_location == selectedLocation) {
+            if (self.selected_view==0)
+                btnTotalCallback();
+            else 
+                btnPercCallback();
+        }
+        else {
+            self.legend.style("opacity", function(d) {
+                return d == selectedLocation ? 1 : 0.2;
+            });
+            self.selected_location = selectedLocation;
+
+            
+            var years = {};
+            for (var i = 0; i < self.x_data.length; ++i) {
+                years[self.x_data[i]] = -1;
+            }
+            var maxY = d3.max(self.data, function(d) { 
+                if (self.selected_view==0)
+                    return d3.max([d.eu,d.jp,d.na,d.rest]);
+                if (self.selected_view==1)
+                    return d3.max([d.eu/d.total*100,d.jp/d.total*100,d.na/d.total*100,d.rest/d.total*100]); 
+            });
+            self.y.domain([0, maxY]).nice();
+            var trans = self.svg.transition().duration(self.transition_time);
+            trans.selectAll(".serie")
+                .selectAll("rect")
+                    .attr("height", function(d) {
+                        var d0, d1;
+                        if (self.selected_view==0){
+                            d0 = d[0];
+                            d1 = d[1];
+                        }
+                        else {
+                            d0 = d[0]/d.data.total*100;
+                            d1 = d[1]/d.data.total*100;
+                        }
+                        years[d.data.year] += 1;
+                        if (years[d.data.year] == idx) {
+                            return self.y(d0) - self.y(d1); 
+                        }
+                        else {
+                            return 0; 
+                        }
+                    })
+                    .attr("y", function(d) {
+                        var d0, d1;
+                        if (self.selected_view==0){
+                            d0 = d[0];
+                            d1 = d[1];
+                        }
+                        else {
+                            d0 = d[0]/d.data.total*100;
+                            d1 = d[1]/d.data.total*100;
+                        }
+                        return self.y(0) - (self.y(d0) - self.y(d1)); 
+                    })
+                .transition().duration(self.transition_time);
+
+            self.yaxis.transition().duration(self.transition_time).call(d3.axisLeft(self.y).ticks(null, "s"));
+            
+        }
+        
     }
 }
 
