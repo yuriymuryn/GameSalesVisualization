@@ -56,38 +56,79 @@ function generatePlatformByYear(dat, div_id) {
     var width = 800 - margin.left - margin.right;
     var height = 400 - margin.top - margin.bottom;
 
-    var windowHalfSize = 50;
+    var windowHalfSize = 3;
 
-    var data = [0];
-    for (var i = 1; i < 1000; i++) {
-        var sign = Math.random() > 0.5 ? +1 : -1;
-        data.push(data[i-1] + sign * Math.random());
+    var x_data =[];
+    for (var key in dat) {
+        if (dat.hasOwnProperty(key)) {
+            x_data.push(key);
+        }
     }
 
-    var data1 = [0];
-    for (var i = 1; i < 200; i++) {
+    console.log(x_data);
+
+
+    var line_date = [];//line_date1,line_date2
+
+    var line_data_temp = [];
+    line_data_temp.push({"Ano":x_data[0],"y":0});
+    for (var i = 1; i < x_data.length; i++) {
         var sign = Math.random() > 0.5 ? +1 : -1;
-        data1.push(data1[i-1] + sign * Math.random());
+        var y = (line_data_temp[i-1].y+ sign * Math.random());
+        line_data_temp.push({"Ano":x_data[i],"y":y})
     }
 
-    var x_scale = d3.scaleLinear().domain([0, data.length]).range([0, width]);
-    var y_scale = d3.scaleLinear().domain([Math.min(d3.min(data),d3.min(data1)), Math.max(d3.max(data),d3.max(data1))]).range([height, 0]);
+    line_date.push(line_data_temp);
 
-    var line = d3.line()
-        .x(function (d,i) {
-            return x_scale(i);
-        })
-        .y(function (d) {
-            return y_scale(d);
-        });
+    line_data_temp = [];
 
-    var line1 = d3.line()
-        .x(function (d,i) {
-            return x_scale(200+i);
-        })
-        .y(function (d) {
-            return y_scale(d);
-        });
+    line_data_temp.push({"Ano":x_data[10],"y":0});
+    for (var i = 11; i < x_data.length-8; i++) {
+        var sign = Math.random() > 0.5 ? +1 : -1;
+        var y = (line_data_temp[(i-10)-1].y+ sign * Math.random());
+        line_data_temp.push({"Ano":x_data[i],"y":y})
+    }
+    line_date.push(line_data_temp);
+
+    console.log(line_date);
+    //console.log(data1);
+
+    //var x_scale = d3.scaleLinear().domain([0, data.length]).range([0, width]);
+
+    var x_scale = d3.scalePoint().domain(x_data).range([margin.left, width]);
+    console.log("step "+x_scale.step());
+    var y_scale = d3.scaleLinear().domain([-10, 10]).range([height, 0]);
+
+    var lines =[];
+    var i =0;
+    for (i =0;i<2;i++)
+        lines.push(d3.line()
+            .x(function (d,i) {
+                var domain = x_scale.domain();
+
+                var x =  x_scale(d.Ano);
+                if (x==null) {
+                    //inferir a posicao
+                    var step = x_scale.step();
+                    var d_min = +domain[0];
+                    var d_max = +domain[domain.length - 1];
+
+                    if (d.Ano < d_min)
+                        return x_scale(d_min) - step * (d_min - d.Ano);
+                    else if (d.Ano>d_max)
+                        return x_scale(d_max) + step * (d.Ano - d_max);
+                }
+
+
+
+                return  x;
+
+            })
+            .y(function (d) {
+                return y_scale(d.y);
+            }));
+
+
 
     var svg = d3.select("#visualisationY")
         .append("svg")
@@ -101,7 +142,7 @@ function generatePlatformByYear(dat, div_id) {
 
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate("+margin.left+"," + height + ")")
+        .attr("transform", "translate(0," + height + ")")
         .call(x_axis);
 
     var y_axis = d3.axisLeft(y_scale);
@@ -118,44 +159,49 @@ function generatePlatformByYear(dat, div_id) {
         .attr("id", "clip-rect")
         .attr("x", margin.left)
         .attr("y", "0")
-        .attr("width", width)
+        .attr("width", width-margin.left)
         .attr("height", height);
 
     var path = svg.append("path")
         .attr("class","path")
         .attr("id","line")
         .attr("clip-path", "url(#clip)")
-        .attr("d", line(data));
+        .attr("d", lines[0](line_date[0]));
 
     svg.append("path")
         .attr("class","path")
         .attr("id","line1")
         .attr("clip-path", "url(#clip)")
-        .attr("d", line1(data1));
-
+        .attr("d", lines[1](line_date[1]));
+    var last = 20;
     function slideWindow(center) {
+
+
         var begin = center-windowHalfSize;
         var end = center+windowHalfSize;
         console.log("begin:", begin, "end:", end);
-        x_scale.domain([begin,end-1]);
+        var x_slice = x_data.slice(begin,end);
 
+        x_scale.domain(x_slice);
         //efeito de transição em ms podemos usar no play
-        var t = svg.transition().duration(0);
 
+        var t = svg.transition().duration(500);
         t.select(".x.axis").call(x_axis);//update eixo x
-        t.select("#line").attr("d", line(data));
-        t.select("#line1").attr("d", line1(data1));
+        t.select("#line").attr("d", lines[0](line_date[0]));
+        t.select("#line1").attr("d", lines[1](line_date[1]));
+
     }
 
     $( "#slider" ).slider({
-        min: 50,
-        max: 950,
+        min: 0+windowHalfSize,
+        max: 42-windowHalfSize,
         slide: function( event, ui ) {
 
             slideWindow( ui.value);
         }
     });
 
-    slideWindow(50);
+    $("#slider").slider('value',20);
+    slideWindow(20);
 
 }
