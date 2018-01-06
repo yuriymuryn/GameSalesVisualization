@@ -56,7 +56,8 @@ function processPlatformByYear(structure, years,row){
 //bases retiradas de http://bl.ocks.org/lucassus/3878348
 function generatePlatformByYear(dat, years,div_id) {
 
-    var scoreMethod = 1;//0-sales, 1-userscore, 2- critic_score
+    var MAX_TOP = 4;
+    var scoreMethod = 0;//0-sales, 1-userscore, 2- critic_score
 
     var margin = {top: 30, right: 50, bottom: 40, left:40};
     var width = 800 - margin.left - margin.right;
@@ -115,7 +116,7 @@ function generatePlatformByYear(dat, years,div_id) {
 
 
     console.log("data");
-    //line_date = [line_date[15]];//.slice(0,20);
+    //line_date = [line_date[14]];//.slice(0,20);
     console.log(line_date);
 
     //console.log(data1);
@@ -160,6 +161,7 @@ function generatePlatformByYear(dat, years,div_id) {
         }
     }
 
+
     var y_scale = d3.scaleLinear().domain([min_y,max_y]).range([height, 0]);
 
     /*####  Criar o metodo que gera as linhas d3  ###*/
@@ -184,7 +186,7 @@ function generatePlatformByYear(dat, years,div_id) {
     var g = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var x_axis = d3.axisBottom(x_scale);
+    var x_axis = d3.axisBottom(x_scale).tickSize(-height);
 
     svg.append("g")
         .attr("class", "x axis")
@@ -277,6 +279,9 @@ function generatePlatformByYear(dat, years,div_id) {
         .attr("fill", "white")
         .attr("class","labelText")
         .attr("stroke","black")
+        .style("visibility", function (d) {
+            return "visible";
+        })
         .attr("r", function (d, i) {
             return 5;
         });
@@ -295,18 +300,54 @@ function generatePlatformByYear(dat, years,div_id) {
         x_scale.domain(x_slice);
         //efeito de transição em ms podemos usar no play
 
+        //calcular o dominio em y para os TOP
+        var min_y = 9999999999999999999;
+        var max_y = 0;
+
+        for (var i=0;i<line_date.length;i++){
+            for (var j=0;j<line_date[i].length;j++){
+
+                if (line_date[i][j].Ano==x_slice[x_slice.length-1]){
+                    if (line_date[i][j].y>=max_y){
+                        max_y = line_date[i][j].y
+                    }
+                    if (line_date[i][j].y<=min_y){
+                        min_y = line_date[i][j].y
+                    }
+                }
+            }
+        }
+        console.log("max_y "+max_y+" min_y "+min_y);
+        y_scale.domain([(max_y-50),max_y+50]);//static
+
+
+
         var t = svg.transition().duration(500);
+        t.select(".y.axis").call(y_axis);
         t.select(".x.axis").call(x_axis);//update eixo x
         for (var i=0 ;i< line_date.length;i++) {
             t.select("#line"+i).attr("d", lines[i](line_date[i]));
-            //t.select("#line1").attr("d", lines[1](line_date[1]));
         }
 
 
         t.selectAll("circle")
             .attr("cx",circle_x)
             .attr("cy", circle_y)
+            .style("visibility", function (d) {
+                var domain = x_scale.domain();
+                var ano = domain[domain.length-1];
+                for (var i=0;i<d.length;i++){
+                    if (d[i].Ano==ano) {
+                        console.log("y "+y_scale(d[i].y)+" "+height)
+                        if (y_scale(d[i].y) > height) {
 
+                            console.log("change to hide")
+                            return "hidden";
+                        }
+                    }
+                }
+                return "visible";
+            })
             .attr("r", function (d, i) {
                 return 5;
             });
