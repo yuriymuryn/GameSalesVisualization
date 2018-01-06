@@ -17,27 +17,21 @@
 */
 
 $(document).ready(function(){
+    sales_year_location = new SalesByYearAndLocation(800,400);
+    
     d3.csv("data/Video_Game_Sales_as_of_Jan_2017.csv", parseDataset);
 });
 
 function parseDataset(data) {
     console.log(data);
-    var sales_year_location = {}; 
-    // len = data.length
-    for (var i = 0, len = data.length; i < len; i++) {
+    
+    for (var i = 0, len = 1000; i < len; i++) {
         // line processing
-        processSalesByYearAndLocation(sales_year_location, data[i]);
-
-        /* SCORES VS SALES 
-        if (data[i].Critic_Score)
-            score_vs_sales.push([+data[i].Critic_Score, +data[i].Global_Sales, "critic"]);
-        if (data[i].User_Score)
-            score_vs_sales.push([+data[i].User_Score * 10, +data[i].Global_Sales, "user"]);*/
+        sales_year_location.processRow(data[i]);
     }
     
-    console.log(sales_year_location);
-    locations_label = ["Europe", "North America", "Japan", "Rest of the Word", "Total"]
-    generateSalesByYearAndLocation(sales_year_location, locations_label, "#salesYearLocation");
+    sales_year_location.locations = ["Europe", "North America", "Japan", "Rest of the Word"];
+    sales_year_location.draw("#salesYearLocation"); 
 }
 
 
