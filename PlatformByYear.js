@@ -96,6 +96,25 @@ function generatePlatformByYear(dat, div_id) {
     //var x_scale = d3.scaleLinear().domain([0, data.length]).range([0, width]);
 
     var x_scale = d3.scalePoint().domain(x_data).range([margin.left, width]);
+
+    function extend_x_scale(ano){
+        var domain = x_scale.domain();
+
+        var x =  x_scale(ano);
+        if (x==null) {
+            //inferir a posicao
+            var step = x_scale.step();
+            var d_min = +domain[0];
+            var d_max = +domain[domain.length - 1];
+
+            if (ano < d_min)
+                return x_scale(d_min) - step * (d_min - ano);
+            else if (ano>d_max)
+                return x_scale(d_max) + step * (ano - d_max);
+        }
+        return  x;
+    }
+
     console.log("step "+x_scale.step());
     var y_scale = d3.scaleLinear().domain([-10, 10]).range([height, 0]);
 
@@ -104,24 +123,8 @@ function generatePlatformByYear(dat, div_id) {
     for (i =0;i<2;i++)
         lines.push(d3.line()
             .x(function (d,i) {
-                var domain = x_scale.domain();
 
-                var x =  x_scale(d.Ano);
-                if (x==null) {
-                    //inferir a posicao
-                    var step = x_scale.step();
-                    var d_min = +domain[0];
-                    var d_max = +domain[domain.length - 1];
-
-                    if (d.Ano < d_min)
-                        return x_scale(d_min) - step * (d_min - d.Ano);
-                    else if (d.Ano>d_max)
-                        return x_scale(d_max) + step * (d.Ano - d_max);
-                }
-
-
-
-                return  x;
+                return extend_x_scale(d.Ano);
 
             })
             .y(function (d) {
@@ -173,7 +176,47 @@ function generatePlatformByYear(dat, div_id) {
         .attr("id","line1")
         .attr("clip-path", "url(#clip)")
         .attr("d", lines[1](line_date[1]));
-    var last = 20;
+
+
+    function circle_x(d){//ultimo ponto a ser desenhado
+        var domain = x_scale.domain();
+        var ano = domain[domain.length-1];
+
+        for (var i = 0; i<d.length;i++ ){
+            if (d[i].Ano==ano){
+                //esta no dominio
+                return extend_x_scale(ano);
+            }
+        }
+
+        return extend_x_scale(d[d.length-1].Ano)
+    }
+
+    function circle_y(d){//ultimo ponto a ser desenhado
+        var domain = x_scale.domain();
+        var ano = domain[domain.length-1];
+
+        for (var i = 0; i<d.length;i++ ){
+            if (d[i].Ano==ano){
+                //esta no dominio
+                return y_scale(d[i].y);
+            }
+        }
+        return  y_scale(d[d.length-1].y);
+    }
+
+    var circles = svg.selectAll("circle")
+        .data(line_date)
+        .enter()
+        .append("circle")
+        .attr("cx", circle_x)
+        .attr("cy", circle_y)
+
+        .attr("r", function (d, i) {
+            return 5;
+        });
+
+
     function slideWindow(center) {
 
 
@@ -181,7 +224,6 @@ function generatePlatformByYear(dat, div_id) {
         var end = center+windowHalfSize;
         console.log("begin:", begin, "end:", end);
         var x_slice = x_data.slice(begin,end);
-
         x_scale.domain(x_slice);
         //efeito de transição em ms podemos usar no play
 
@@ -190,13 +232,22 @@ function generatePlatformByYear(dat, div_id) {
         t.select("#line").attr("d", lines[0](line_date[0]));
         t.select("#line1").attr("d", lines[1](line_date[1]));
 
+
+        t.selectAll("circle")
+            .attr("cx",circle_x)
+            .attr("cy", circle_y)
+
+            .attr("r", function (d, i) {
+                return 5;
+            });
+
     }
 
     $( "#slider" ).slider({
         min: 0+windowHalfSize,
-        max: 42-windowHalfSize,
+        max: x_data.length-windowHalfSize,
         slide: function( event, ui ) {
-
+            console.log("slider value"+ui.value);
             slideWindow( ui.value);
         }
     });
