@@ -63,13 +63,27 @@ function generatePlatformByYear(dat, div_id) {
         var sign = Math.random() > 0.5 ? +1 : -1;
         data.push(data[i-1] + sign * Math.random());
     }
-    console.log(data);
+
+    var data1 = [0];
+    for (var i = 1; i < 200; i++) {
+        var sign = Math.random() > 0.5 ? +1 : -1;
+        data1.push(data1[i-1] + sign * Math.random());
+    }
+
     var x_scale = d3.scaleLinear().domain([0, data.length]).range([0, width]);
-    var y_scale = d3.scaleLinear().domain([d3.min(data), d3.max(data)]).range([height, 0]);
+    var y_scale = d3.scaleLinear().domain([Math.min(d3.min(data),d3.min(data1)), Math.max(d3.max(data),d3.max(data1))]).range([height, 0]);
 
     var line = d3.line()
         .x(function (d,i) {
             return x_scale(i);
+        })
+        .y(function (d) {
+            return y_scale(d);
+        });
+
+    var line1 = d3.line()
+        .x(function (d,i) {
+            return x_scale(200+i);
         })
         .y(function (d) {
             return y_scale(d);
@@ -109,8 +123,15 @@ function generatePlatformByYear(dat, div_id) {
 
     var path = svg.append("path")
         .attr("class","path")
+        .attr("id","line")
         .attr("clip-path", "url(#clip)")
         .attr("d", line(data));
+
+    svg.append("path")
+        .attr("class","path")
+        .attr("id","line1")
+        .attr("clip-path", "url(#clip)")
+        .attr("d", line1(data1));
 
     function slideWindow(center) {
         var begin = center-windowHalfSize;
@@ -121,8 +142,9 @@ function generatePlatformByYear(dat, div_id) {
         //efeito de transição em ms podemos usar no play
         var t = svg.transition().duration(0);
 
-        t.select(".x.axis").call(x_scale);//update eixo x
-        t.select('.path').attr("d", line(data));
+        t.select(".x.axis").call(x_axis);//update eixo x
+        t.select("#line").attr("d", line(data));
+        t.select("#line1").attr("d", line1(data1));
     }
 
     $( "#slider" ).slider({
