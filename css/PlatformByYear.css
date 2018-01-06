@@ -1,0 +1,13 @@
+
+
+path {
+    stroke: steelblue;
+    stroke-width: 1;
+    fill: none;
+}
+
+
+.y.axis line, .y.axis path {
+    fill: none;
+    stroke: #000;
+}

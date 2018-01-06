@@ -22,12 +22,13 @@ $(document).ready(function(){
 
 function parseDataset(data) {
     console.log(data);
-    var sales_year_location = {}; 
+    var sales_year_location = {};
+    var platform_year = {};
     // len = data.length
     for (var i = 0, len = data.length; i < len; i++) {
         // line processing
         processSalesByYearAndLocation(sales_year_location, data[i]);
-
+        processPlatformByYear(platform_year,data[i]);
         /* SCORES VS SALES 
         if (data[i].Critic_Score)
             score_vs_sales.push([+data[i].Critic_Score, +data[i].Global_Sales, "critic"]);
@@ -35,9 +36,11 @@ function parseDataset(data) {
             score_vs_sales.push([+data[i].User_Score * 10, +data[i].Global_Sales, "user"]);*/
     }
     
-    console.log(sales_year_location);
+    console.log(platform_year);
     locations_label = ["Europe", "North America", "Japan", "Rest of the Word", "Total"]
     generateSalesByYearAndLocation(sales_year_location, locations_label, "#salesYearLocation");
+
+    generatePlatformByYear(platform_year,"#visualisationY");
 }
 
 
