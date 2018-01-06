@@ -13,6 +13,7 @@ function SalesByYearAndLocation() {
     this.location_lagend = ["Europe", "North America", "Japan", "Rest of the World"];
     this.labels = ["eu","na","jp","rest"];
     this.colors = ["#98abc5", "#8a89a6", "#7b6888", "#6b486b"];
+    //this.colors = ["#ed2d2e", "#008c47", "#1859a9", "#f37d22"];
 
     // SIZES
     this.width;     // div width
@@ -38,13 +39,11 @@ function SalesByYearAndLocation() {
         total = +row.Global_Sales || 0;
 
         // If year doesn't exist we skip this entry
-        if (!year){
+        if (!year)
             return
-        }
 
         if (!this.structure[year]){
             this.structure[year] = [eu,na,jp,rest,total];
-
         } else {
             this.structure[year][0] += eu;
             this.structure[year][1] += na;
@@ -55,9 +54,9 @@ function SalesByYearAndLocation() {
     }
 
     this.draw = function(div_id) {
-        this.getSizes(div_id);
-        this.addButtons(div_id);
-        this.processData();
+        getSizes(div_id);
+        addButtons(div_id);
+        processData();
 
         this.svg = d3.select(div_id).append('svg')
             .attr('width', this.width )
@@ -119,7 +118,12 @@ function SalesByYearAndLocation() {
             .attr("dy", "0.5em")
             .text(function(d) { return d; });
 
-        
+        this.clickInfo = this.legend.append("text")
+            .attr("class", "clickInfo")
+            .attr("x", self.width/8)
+            .attr("y", 50)
+            .attr("dy", "0.5em");
+
         this.serie = this.g.selectAll(".serie")
             .data(d3.stack().keys(this.labels)(this.data))
             .enter().append("g")
@@ -133,45 +137,47 @@ function SalesByYearAndLocation() {
                 .attr("x", function(d) { return self.x(d.data.year); })
                 .attr("y", function(d) { return self.y(d[1]); })
                 .attr("height", function(d) { return self.y(d[0]) - self.y(d[1]); })
-                    .transition()
-                    .delay(function(d, i) { return i * 20; })
                 .attr("width", this.x.bandwidth());
     }
 
-    this.processData = function() {
-        this.x_data = Object.keys(this.structure).sort();
+    function processData() {
+        self.x_data = Object.keys(self.structure).sort();
         // restructure the data
-        for (var i=0, len=this.x_data.length; i<len; i++) {
-            y = this.x_data[i];
-            this.x_data[i] = +this.x_data[i];
-            sales = this.structure[y];
-            this.data.push({year:+y, eu:sales[0], na:sales[1], jp:sales[2], rest:sales[3], total:sales[4]});
+        for (var i=0, len=self.x_data.length; i<len; i++) {
+            y = self.x_data[i];
+            self.x_data[i] = +self.x_data[i];
+            sales = self.structure[y];
+            self.data.push({year:+y, eu:sales[0], na:sales[1], jp:sales[2], rest:sales[3], total:sales[4]});
         }
     }
 
-    this.addButtons = function(div_id) {
-
+    function addButtons(div_id) {
         var btnTotal=$('<input/>').attr({ type: "button", id: "changeTotalSales", value: "Sales Number", class: "totalSalesButton" });
         $(div_id).append(btnTotal);
+        btnTotal.on("click", btnTotalCallback);
+
         var btnPerc=$('<input/>').attr({ type: "button", id: "changePercSales", value: "Sales %", class: "totalSalesButton" });
         $(div_id).append(btnPerc);
-
-        btnTotal.on("click", btnTotalCallback);
         btnPerc.on("click", btnPercCallback);
     }
 
-    this.getSizes = function(div_id){
-        this.width = $(div_id).width() || 700;
-        this.height = $(div_id).height() || 400;
+    function getSizes(div_id){
+        self.width = $(div_id).width() || 700;
+        self.height = $(div_id).height() || 400;
 
-        this.l_height = 100;
-        this.l_width = this.width;
-        this.c_margin = {top: 20, right: 40, bottom: 40, left:60};
-        this.c_width = this.width - this.c_margin.left - this.c_margin.right;
-        this.c_height = this.height - this.l_height - this.c_margin.top - this.c_margin.bottom;
+        self.l_height = 90;
+        self.l_width = self.width;
+        self.c_margin = {top: 20, right: 40, bottom: 35, left:60};
+        self.c_width = self.width - self.c_margin.left - self.c_margin.right;
+        self.c_height = self.height - self.l_height - self.c_margin.top - self.c_margin.bottom;
     }
 
     function btnTotalCallback() {
+        if (self.selected_view != 0) { // changes view
+            self.serie.selectAll("rect").style("opacity", 1);
+            self.selected_year = null;     
+            self.clickInfo.text(function(t) { return ""; })
+        }
         self.selected_view = 0;
         
         self.y.domain([0, self.maxY]).nice();
@@ -189,6 +195,11 @@ function SalesByYearAndLocation() {
         self.selected_location = null;
     }
     function btnPercCallback() {
+        if (self.selected_view != 1) { // changes view
+            self.serie.selectAll("rect").style("opacity", 1);
+            self.selected_year = null;     
+            self.clickInfo.text(function(t) { return ""; })
+        }
         self.selected_view = 1;
 
         self.y.domain([0, 100]);
@@ -210,12 +221,25 @@ function SalesByYearAndLocation() {
         let selectedYear = d.data.year;
         if (self.selected_year == selectedYear) {
             self.serie.selectAll("rect").style("opacity", 1);
-            self.selected_year = null;                        
+            self.selected_year = null;     
+            self.clickInfo.text(function(t) { return ""; })                   
         }
         else {
             self.serie.selectAll("rect")
                 .style("opacity", function(d) {
-                    return d.data.year == selectedYear ? 1 : 0.6;
+                    if (d.data.year == selectedYear) {
+                        self.clickInfo.text(function(t) { 
+                            let l = self.labels[self.location_lagend.indexOf(t)];
+                            
+                            if (self.selected_view==0)
+                                return parseFloat(d.data[l]).toFixed(2) + " M";
+                            else
+                                return parseFloat(d.data[l]/d.data.total*100).toFixed(1) + " %"
+                         })
+                        return 1;
+                    }
+                    else 
+                        return 0.6;
                 });
             self.selected_year = selectedYear;
         }
