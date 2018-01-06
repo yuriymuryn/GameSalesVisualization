@@ -26,7 +26,6 @@ function SalesByYearAndLocation() {
 
     this.transition_time = 1000;
 
-    this.selected_year;
     this.selected_location;
     this.selected_view = 0; // 0 - # ; 1 - %
 
@@ -55,14 +54,16 @@ function SalesByYearAndLocation() {
 
     this.draw = function(div_id) {
         getSizes(div_id);
-        addButtons(div_id);
         processData();
 
         this.svg = d3.select(div_id).append('svg')
             .attr('width', this.width )
-            .attr('height', this.height)
+            .attr('height', this.height);
+
+        this.top_group = this.svg.append("g");
+        addButtons(div_id);
+
         this.g = this.svg.append("g").attr("transform", "translate(" + this.c_margin.left + "," + this.c_margin.top + ")");
-           
     
         this.x = d3.scaleBand().rangeRound([0, this.c_width]).paddingInner(0.05);
         this.y = d3.scaleLinear().rangeRound([this.c_height, 0]);
@@ -78,7 +79,7 @@ function SalesByYearAndLocation() {
         x_ticks = this.x_data.filter(x => x%5==0) // 5 in 5 years
         this.g.append("g")
             .attr("class", "axis")
-            .attr("transform", "translate(0," + this.c_height + ")")
+            .attr("transform", "translate(0," + this.c_height+ ")")
             .call(d3.axisBottom(this.x).tickValues(x_ticks));
 
         this.yaxis =  this.g.append("g")
@@ -88,7 +89,7 @@ function SalesByYearAndLocation() {
         this.yaxistext = this.yaxis.append("text")
             .attr("class", "axisLegend")
             .attr("transform","rotate(-90)")
-            .attr("x", - this.c_height/2)
+            .attr("x", - this.c_height/2 - 20)
             .attr("y", - 40)
             .style("text-anchor", "middle")
             .attr("fill", "#000");
@@ -104,17 +105,19 @@ function SalesByYearAndLocation() {
             .data(this.location_lagend)
             .enter().append("g")
                 .on("click", callbackClickLocation)
+                .on("mouseover", callbackMouseOverLocation)
+                .on("mouseout", callbackMouseOutLocation)
                 .attr("transform", function(d, i) { return "translate("+ (i * self.width/4) +", 0)"; });
         
         this.legend.append("rect")
-            .attr("x", 1)
-            .attr("width", self.width/4 - 2)
-            .attr("height", 10)
+            .attr("x", 20)
+            .attr("width", self.width/4 - 40)
+            .attr("height", 15)
             .attr("fill", this.z);
         
         this.legend.append("text")
             .attr("x", self.width/8)
-            .attr("y", 20)
+            .attr("y", 25)
             .attr("dy", "0.5em")
             .text(function(d) { return d; });
 
@@ -133,7 +136,8 @@ function SalesByYearAndLocation() {
         this.serie.selectAll("rect")
             .data(function(d) { return d; })
             .enter().append("rect")
-                .on("click", callbackClickYear)
+                .on("mouseover", callbackMouseOverYear)
+                .on("mouseout", callbackMouseOutYear)
                 .attr("x", function(d) { return self.x(d.data.year); })
                 .attr("y", function(d) { return self.y(d[1]); })
                 .attr("height", function(d) { return self.y(d[0]) - self.y(d[1]); })
@@ -152,32 +156,33 @@ function SalesByYearAndLocation() {
     }
 
     function addButtons(div_id) {
-        var btnTotal=$('<input/>').attr({ type: "button", id: "changeTotalSales", value: "Sales Number", class: "totalSalesButton" });
-        $(div_id).append(btnTotal);
-        btnTotal.on("click", btnTotalCallback);
-
-        var btnPerc=$('<input/>').attr({ type: "button", id: "changePercSales", value: "Sales %", class: "totalSalesButton" });
-        $(div_id).append(btnPerc);
-        btnPerc.on("click", btnPercCallback);
+        self.top_group.append("rect")
+            .attr("x", 0)
+            .attr("width", 25)
+            .attr("height", 30)
+            .on("click",btnTotalCallback)
+        
+        self.top_group.append("rect")
+            .attr("x", 0)
+            .attr("y", 35)
+            .attr("width", 25)
+            .attr("height", 30)
+            .on("click",btnPercCallback)
     }
 
     function getSizes(div_id){
         self.width = $(div_id).width() || 700;
         self.height = $(div_id).height() || 400;
 
+
         self.l_height = 90;
         self.l_width = self.width;
-        self.c_margin = {top: 20, right: 40, bottom: 35, left:60};
+        self.c_margin = {top: 10, right: 40, bottom: 35, left:65};
         self.c_width = self.width - self.c_margin.left - self.c_margin.right;
         self.c_height = self.height - self.l_height - self.c_margin.top - self.c_margin.bottom;
     }
 
     function btnTotalCallback() {
-        if (self.selected_view != 0) { // changes view
-            self.serie.selectAll("rect").style("opacity", 1);
-            self.selected_year = null;     
-            self.clickInfo.text(function(t) { return ""; })
-        }
         self.selected_view = 0;
         
         self.y.domain([0, self.maxY]).nice();
@@ -195,11 +200,6 @@ function SalesByYearAndLocation() {
         self.selected_location = null;
     }
     function btnPercCallback() {
-        if (self.selected_view != 1) { // changes view
-            self.serie.selectAll("rect").style("opacity", 1);
-            self.selected_year = null;     
-            self.clickInfo.text(function(t) { return ""; })
-        }
         self.selected_view = 1;
 
         self.y.domain([0, 100]);
@@ -217,32 +217,35 @@ function SalesByYearAndLocation() {
         self.selected_location = null;
     }
 
-    function callbackClickYear(d){
+    function callbackMouseOverYear(d){
         let selectedYear = d.data.year;
-        if (self.selected_year == selectedYear) {
-            self.serie.selectAll("rect").style("opacity", 1);
-            self.selected_year = null;     
-            self.clickInfo.text(function(t) { return ""; })                   
-        }
-        else {
-            self.serie.selectAll("rect")
-                .style("opacity", function(d) {
-                    if (d.data.year == selectedYear) {
-                        self.clickInfo.text(function(t) { 
-                            let l = self.labels[self.location_lagend.indexOf(t)];
-                            
-                            if (self.selected_view==0)
-                                return parseFloat(d.data[l]).toFixed(2) + " M";
-                            else
-                                return parseFloat(d.data[l]/d.data.total*100).toFixed(1) + " %"
-                         })
-                        return 1;
-                    }
-                    else 
-                        return 0.6;
-                });
-            self.selected_year = selectedYear;
-        }
+        
+        self.serie.selectAll("rect")
+            .style("opacity", function(d) {
+                if (d.data.year == selectedYear) {
+                    self.clickInfo.text(function(t) { 
+                        let l = self.labels[self.location_lagend.indexOf(t)];
+                        
+                        if (self.selected_view==0)
+                            return parseFloat(d.data[l]).toFixed(2) + " M";
+                        else
+                            return parseFloat(d.data[l]/d.data.total*100).toFixed(1) + " %"
+                        })
+                    return 1;
+                }
+                else 
+                    return 0.7;
+            });
+    }
+
+    function callbackMouseOutYear(d){
+        self.serie.selectAll("rect").style("opacity", 1);
+        self.clickInfo.text(function(t) { return ""; })
+
+        self.serie.selectAll("rect")
+            .style("opacity", 1);
+        self.clickInfox
+            .text(function(t) { return ""; });
     }
 
     function callbackClickLocation(d){
@@ -310,8 +313,19 @@ function SalesByYearAndLocation() {
 
             self.yaxis.transition().duration(self.transition_time).call(d3.axisLeft(self.y).ticks(null, "s"));
             
-        }
-        
+        }        
+    }
+
+    function callbackMouseOverLocation(d){ 
+        let selectedLocation = d;
+        self.legend.style("stroke", function(d) {
+            return d == selectedLocation ? "black" : "none";
+        });
+    }
+
+    function callbackMouseOutLocation(d){ 
+        let selectedLocation = d;
+        self.legend.style("stroke", "none");
     }
 }
 
