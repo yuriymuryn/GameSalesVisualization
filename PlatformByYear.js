@@ -116,7 +116,7 @@ function generatePlatformByYear(dat, years,div_id) {
 
 
     console.log("data");
-    //line_date = [line_date[14]];//.slice(0,20);
+    //line_date = [line_date[7]];//.slice(0,20);
     console.log(line_date);
 
     //console.log(data1);
@@ -256,7 +256,30 @@ function generatePlatformByYear(dat, years,div_id) {
         }
         return  y_scale(d[d.length-1].y);
     }
-/*
+
+    function visibility_y(d) {
+
+        var domain = x_scale.domain();
+        var ano = domain[domain.length-1];
+
+
+        if (d[d.length-1].Ano<=ano){
+            if (y_scale(d[d.length-1].y)>height){
+                return "hidden";
+            }
+        }
+
+        for (var i=d.length-1;i>=0;i--){
+
+            if (d[i].Ano==ano){
+                if (y_scale(d[i].y)>height){
+                    return "hidden";
+                }
+            }
+        }
+        return "visible";
+    }
+
     svg.selectAll("labels")
         .data(line_date)
         .enter()
@@ -264,9 +287,13 @@ function generatePlatformByYear(dat, years,div_id) {
         .text(function (d) {
             return d[0].Name;
         })
+        .attr("id",function (d,i) {
+            return "text"+i;
+        })
+        .style("visibility", "visible")
         .attr("x",circle_x)
         .attr("y",circle_y);
-*/
+
     var circles = svg.selectAll("circle")
         .data(line_date)
         .enter()
@@ -279,9 +306,7 @@ function generatePlatformByYear(dat, years,div_id) {
         .attr("fill", "white")
         .attr("class","labelText")
         .attr("stroke","black")
-        .style("visibility", function (d) {
-            return "visible";
-        })
+        .style("visibility", "visible")
         .attr("r", function (d, i) {
             return 5;
         });
@@ -318,7 +343,7 @@ function generatePlatformByYear(dat, years,div_id) {
             }
         }
         console.log("max_y "+max_y+" min_y "+min_y);
-        y_scale.domain([(max_y-50),max_y+50]);//static
+        y_scale.domain([max_y-50,max_y+50]);//static
 
 
 
@@ -327,30 +352,30 @@ function generatePlatformByYear(dat, years,div_id) {
         t.select(".x.axis").call(x_axis);//update eixo x
         for (var i=0 ;i< line_date.length;i++) {
             t.select("#line"+i).attr("d", lines[i](line_date[i]));
+            t.select("#text"+i)//nao deu com selectAll n sei pq
+                .style("visibility", visibility_y)
+                .attr("x",function (d) {
+                    return circle_x(d)+5;
+                })
+                .attr("y",function (d) {
+                    return circle_y(d)+5;
+                })
+                .text(function (d) {
+                    return d[0].Name;
+                });
+
         }
 
 
         t.selectAll("circle")
             .attr("cx",circle_x)
             .attr("cy", circle_y)
-            .style("visibility", function (d) {
-                var domain = x_scale.domain();
-                var ano = domain[domain.length-1];
-                for (var i=0;i<d.length;i++){
-                    if (d[i].Ano==ano) {
-                        console.log("y "+y_scale(d[i].y)+" "+height)
-                        if (y_scale(d[i].y) > height) {
-
-                            console.log("change to hide")
-                            return "hidden";
-                        }
-                    }
-                }
-                return "visible";
-            })
+            .style("visibility", visibility_y)
             .attr("r", function (d, i) {
                 return 5;
             });
+
+
 /*
         svg.selectAll(".labelText")
             .attr("x",circle_x)
