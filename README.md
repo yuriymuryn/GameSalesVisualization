@@ -2,8 +2,6 @@
 
 Game Sales visualization using d3.js.
 
-
-
 # Visualizations
 
 ## Top Publishers
