@@ -25,17 +25,19 @@ $(document).ready(function(){
 function parseDataset(data) {
     console.log(data);
     var platform_year = {};
+    var years = {};
 
     for (var i = 0, len = 1000; i < len; i++) {
         // line processing
         sales_year_location.processRow(data[i]);
-        processPlatformByYear(platform_year,data[i]);
+        processPlatformByYear(platform_year,years,data[i]);
     }
     
     sales_year_location.locations = ["Europe", "North America", "Japan", "Rest of the Word"];
     sales_year_location.draw("#salesYearLocation"); 
 
-    generatePlatformByYear(platform_year,"#visualisationY");
+
+    generatePlatformByYear(platform_year,years,"#visualisationY");
 
 }
 

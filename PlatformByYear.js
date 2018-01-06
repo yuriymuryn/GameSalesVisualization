@@ -18,8 +18,8 @@
 
 // FORMAT > {{year:{publisher:[NumJogos,TotalMoney,UserScore,Critic_Score], publisher:[...]} }, ...}
 //ou
-// FORMAT > {{year:{platform:[NumJogos,TotalMoney,UserScore,Critic_Score], platform:[...]} }, ...}
-function processPlatformByYear(structure, row){
+// FORMAT > {{platform:{year:[NumJogos,TotalMoney,UserScore,Critic_Score], year:[...]} }, ...}
+function processPlatformByYear(structure, years,row){
     var year = +row.Year_of_Release,
         platform = row.Platform,
         globalSlales = +row.Global_Sales,
@@ -31,26 +31,32 @@ function processPlatformByYear(structure, row){
     if (!year || !platform || !globalSlales )
         return
 
+    if (!years[year])
+        years[year] = [];
+
     if (platform==2600)
         platform="Atari 2600";
 
-    if (!structure[year]){
-        structure[year]= {};//{platform :[1,globalSlales,userScore,criticScore]};
-        structure[year][platform] = [1,globalSlales,userScore,criticScore];
+    if (!structure[platform]){
+        structure[platform]= {};//{year :[1,globalSlales,userScore,criticScore]};
+        structure[platform][year] = [1,globalSlales,userScore,criticScore];
 
-    } else if(!structure[year][platform]) {
-        structure[year][platform] = [1,globalSlales,userScore,criticScore];
+    } else if(!structure[platform][year]) {
+        structure[platform][year] = [1,globalSlales,userScore,criticScore];
     } else {
-        structure[year][platform][0] += 1;
-        structure[year][platform][1] += globalSlales;
-        structure[year][platform][2] = (structure[year][platform][2]*(structure[year][platform][0]-1)+userScore)/structure[year][platform][0]; //avg on fly
-        structure[year][platform][3] = (structure[year][platform][3]*(structure[year][platform][0]-1)+criticScore)/structure[year][platform][0]; //avg on fly
+        structure[platform][year][0] += 1;
+        structure[platform][year][1] += globalSlales;
+        structure[platform][year][2] = (structure[platform][year][2]*(structure[platform][year][0]-1)+userScore)/structure[platform][year][0]; //avg on fly
+        structure[platform][year][3] = (structure[platform][year][3]*(structure[platform][year][0]-1)+criticScore)/structure[platform][year][0]; //avg on fly
     }
 }
 
-//bases retiradas de http://bl.ocks.org/lucassus/3878348
-function generatePlatformByYear(dat, div_id) {
 
+//{{year:{platform:[NumJogos,TotalMoney,UserScore,Critic_Score], platform:[...]} }, ...}
+//bases retiradas de http://bl.ocks.org/lucassus/3878348
+function generatePlatformByYear(dat, years,div_id) {
+
+    var scoreMethod = 1;//0-sales, 1-userscore, 2- critic_score
 
     var margin = {top: 30, right: 50, bottom: 40, left:40};
     var width = 800 - margin.left - margin.right;
@@ -59,38 +65,59 @@ function generatePlatformByYear(dat, div_id) {
     var windowHalfSize = 3;
 
     var x_data =[];
-    for (var key in dat) {
-        if (dat.hasOwnProperty(key)) {
-            x_data.push(key);
-        }
-    }
-
-    console.log(x_data);
-
 
     var line_date = [];//line_date1,line_date2
 
-    var line_data_temp = [];
-    line_data_temp.push({"Ano":x_data[0],"y":0});
-    for (var i = 1; i < x_data.length; i++) {
-        var sign = Math.random() > 0.5 ? +1 : -1;
-        var y = (line_data_temp[i-1].y+ sign * Math.random());
-        line_data_temp.push({"Ano":x_data[i],"y":y})
+    anos = Object.keys(years);
+    for (var i=anos[0];i<=anos[anos.length-1];i++)
+        x_data.push(i);
+
+
+    console.log(dat);
+    for (var platform in dat) {
+        if (dat.hasOwnProperty(platform)) {
+            var line_points = [];
+            //completar com 0 os anos inexistentes
+            var anos = Object.keys(dat[platform]);
+
+            for (var i = anos[0];i<=anos[anos.length-1];i++){
+                if (!dat[platform][i]) {//nao exsite ano
+                    line_points.push({
+                        "Ano": i,
+                        "y": 0,
+                        "Name": platform
+                    });
+                }else {
+                    var y;
+                    if (scoreMethod==0)
+                        y=dat[platform][i][1];
+                    else if(scoreMethod==1)
+                        y=dat[platform][i][2];
+                    else if(scoreMethod==2)
+                        y=dat[platform][i][3];
+                    line_points.push({
+                        "Ano": +i,
+                        "y": y,
+                        //"y":dat[platform][i][2],
+                        //"y":dat[platform][i][3],
+                        "Name": platform
+                    });
+                }
+
+            }
+
+            line_date.push(line_points);
+
+        }
     }
-
-    line_date.push(line_data_temp);
-
-    line_data_temp = [];
-
-    line_data_temp.push({"Ano":x_data[10],"y":0});
-    for (var i = 11; i < x_data.length-8; i++) {
-        var sign = Math.random() > 0.5 ? +1 : -1;
-        var y = (line_data_temp[(i-10)-1].y+ sign * Math.random());
-        line_data_temp.push({"Ano":x_data[i],"y":y})
-    }
-    line_date.push(line_data_temp);
-
     console.log(line_date);
+    console.log(x_data);
+
+
+    console.log("data");
+    //line_date = [line_date[15]];//.slice(0,20);
+    console.log(line_date);
+
     //console.log(data1);
 
     //var x_scale = d3.scaleLinear().domain([0, data.length]).range([0, width]);
@@ -101,6 +128,7 @@ function generatePlatformByYear(dat, div_id) {
         var domain = x_scale.domain();
 
         var x =  x_scale(ano);
+
         if (x==null) {
             //inferir a posicao
             var step = x_scale.step();
@@ -116,16 +144,31 @@ function generatePlatformByYear(dat, div_id) {
     }
 
     console.log("step "+x_scale.step());
-    var y_scale = d3.scaleLinear().domain([-10, 10]).range([height, 0]);
 
+    var min_y = 9999999999999999999;
+    var max_y = 0;
+
+    for (var i=0;i<line_date.length;i++){
+        for (var j=0;j<line_date[i].length;j++){
+            if (line_date[i][j].y>max_y){
+                max_y = line_date[i][j].y
+            }
+
+            if (line_date[i][j].y<min_y){
+                min_y = line_date[i][j].y
+            }
+        }
+    }
+
+    var y_scale = d3.scaleLinear().domain([min_y,max_y]).range([height, 0]);
+
+    /*####  Criar o metodo que gera as linhas d3  ###*/
     var lines =[];
-    var i =0;
-    for (i =0;i<2;i++)
+    for (i =0;i<line_date.length;i++)
         lines.push(d3.line()
-            .x(function (d,i) {
+            .x(function (d) {
 
                 return extend_x_scale(d.Ano);
-
             })
             .y(function (d) {
                 return y_scale(d.y);
@@ -162,32 +205,39 @@ function generatePlatformByYear(dat, div_id) {
         .attr("id", "clip-rect")
         .attr("x", margin.left)
         .attr("y", "0")
-        .attr("width", width-margin.left)
+        .attr("width", width-(margin.left))
         .attr("height", height);
 
-    var path = svg.append("path")
-        .attr("class","path")
-        .attr("id","line")
-        .attr("clip-path", "url(#clip)")
-        .attr("d", lines[0](line_date[0]));
-
-    svg.append("path")
-        .attr("class","path")
-        .attr("id","line1")
-        .attr("clip-path", "url(#clip)")
-        .attr("d", lines[1](line_date[1]));
+    //linhas
+    for (var i=0;i<line_date.length;i++) {
+        svg.append("path")
+            .attr("class", "path")
+            .attr("id", "line"+i)
+            .attr("clip-path", "url(#clip)")
+            .attr("d", lines[i](line_date[i]));
+    }
 
 
     function circle_x(d){//ultimo ponto a ser desenhado
         var domain = x_scale.domain();
         var ano = domain[domain.length-1];
 
+
+        var ano_min = 2016;
+        var ano_max = 1978;
         for (var i = 0; i<d.length;i++ ){
-            if (d[i].Ano==ano){
-                //esta no dominio
-                return extend_x_scale(ano);
-            }
+            if (d[i].Ano>ano_max)
+                ano_max = d[i].Ano;
+            if (d[i].Ano<ano_min)
+                ano_min = d[i].Ano;
         }
+
+
+        if (ano_max>=ano && ano_min<=ano){
+            //esta no domino
+            return extend_x_scale(ano);
+        }
+
 
         return extend_x_scale(d[d.length-1].Ano)
     }
@@ -204,17 +254,35 @@ function generatePlatformByYear(dat, div_id) {
         }
         return  y_scale(d[d.length-1].y);
     }
-
+/*
+    svg.selectAll("labels")
+        .data(line_date)
+        .enter()
+        .append("text")
+        .text(function (d) {
+            return d[0].Name;
+        })
+        .attr("x",circle_x)
+        .attr("y",circle_y);
+*/
     var circles = svg.selectAll("circle")
         .data(line_date)
         .enter()
         .append("circle")
+        .attr("id", function (d,i) {
+            return "cir"+i;
+        })
         .attr("cx", circle_x)
         .attr("cy", circle_y)
-
+        .attr("fill", "white")
+        .attr("class","labelText")
+        .attr("stroke","black")
         .attr("r", function (d, i) {
             return 5;
         });
+
+
+
 
 
     function slideWindow(center) {
@@ -229,8 +297,10 @@ function generatePlatformByYear(dat, div_id) {
 
         var t = svg.transition().duration(500);
         t.select(".x.axis").call(x_axis);//update eixo x
-        t.select("#line").attr("d", lines[0](line_date[0]));
-        t.select("#line1").attr("d", lines[1](line_date[1]));
+        for (var i=0 ;i< line_date.length;i++) {
+            t.select("#line"+i).attr("d", lines[i](line_date[i]));
+            //t.select("#line1").attr("d", lines[1](line_date[1]));
+        }
 
 
         t.selectAll("circle")
@@ -240,6 +310,15 @@ function generatePlatformByYear(dat, div_id) {
             .attr("r", function (d, i) {
                 return 5;
             });
+/*
+        svg.selectAll(".labelText")
+            .attr("x",circle_x)
+            .attr("y",circle_y)
+
+            .text(function (d) {
+                console.log("UPATE ");
+            return d[0].Name+" " +d[0].Ano;
+        });*/
 
     }
 
@@ -247,7 +326,6 @@ function generatePlatformByYear(dat, div_id) {
         min: 0+windowHalfSize,
         max: x_data.length-windowHalfSize,
         slide: function( event, ui ) {
-            console.log("slider value"+ui.value);
             slideWindow( ui.value);
         }
     });
