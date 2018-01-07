@@ -194,7 +194,7 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
     //var x_scale = d3.scaleLinear().domain([0, data.length]).range([0, width]);
 
     //criação de escala descontinua, NOTA para datas o prof tinha dito para usar o Point
-    var x_scale = d3.scalePoint().domain(x_data).range([margin.left, width]);
+    var x_scale = d3.scalePoint().domain(x_data).range([margin.left, width-margin.right]);
 
     //função que extende as funcionalidades de x_scale para escala continua
     function extend_x_scale(ano) {
@@ -209,9 +209,9 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
             var d_max = +domain[domain.length - 1];
 
             if (ano < d_min)
-                return x_scale(d_min) - step * (d_min - ano);
+                return x_scale(d_min) - step * (d_min - ano)-margin.left;
             else if (ano > d_max)
-                return x_scale(d_max) + step * (ano - d_max);
+                return x_scale(d_max) + step * (ano - d_max)+margin.right;
         }
         return x;
     }
@@ -237,39 +237,24 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
         FUNÇÕES PARA MANIPULAR OS CIRCULOS E O TEXTO, PARA ACOMPANHAR O ULTIMO PONTO DESENHADO DA LINHA
      */
 
-    function circle_x(d) {//ultimo ponto a ser desenhado
+    function getCircleObejctInDomain(d) {
         var domain = x_scale.domain();
-        var ano = domain[domain.length - 1];
+        var index = null;
 
-        var ano_min = 2016;
-        var ano_max = 1978;
-        for (var i = 0; i < d.length; i++) {
-            if (d[i].Ano > ano_max)
-                ano_max = d[i].Ano;
-            if (d[i].Ano < ano_min)
-                ano_min = d[i].Ano;
+        if (d[0].Ano<=domain[domain.length-1] && d[d.length-1].Ano>=domain[domain.length-1]){
+            index = (domain.length-1)-(d[0].Ano-domain[0]);
+        }else{
+            index = d.length-1;
         }
+        return index;
+    }
 
-        if (ano_max >= ano && ano_min <= ano) {
-            //esta no domino
-            return extend_x_scale(ano);
-        }
-
-
-        return extend_x_scale(d[d.length - 1].Ano)
+    function circle_x(d) {//ultimo ponto a ser desenhado
+        return extend_x_scale(d[getCircleObejctInDomain(d)].Ano);
     }
 
     function circle_y(d) {//ultimo ponto a ser desenhado
-        var domain = x_scale.domain();
-        var ano = domain[domain.length - 1];
-
-        for (var i = 0; i < d.length; i++) {
-            if (d[i].Ano == ano) {
-                //esta no dominio
-                return y_scale(d[i].y);
-            }
-        }
-        return y_scale(d[d.length - 1].y);
+        return y_scale(d[getCircleObejctInDomain(d)].y);
     }
 
     function visibility_y(d) {
@@ -293,6 +278,10 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
             }
         }
         return "visible";
+    }
+
+    function text(d) {
+        return d[0].Name.split(" ")[0] + " " +d[getCircleObejctInDomain(d)].y.toFixed(2);
     }
 
     /*
@@ -348,7 +337,7 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
         .attr("id", "clip-rect")
         .attr("x", margin.left)
         .attr("y", "0")
-        .attr("width", width - (margin.left))
+        .attr("width", width - (margin.left+margin.right))
         .attr("height", height+5);
 
 
@@ -386,12 +375,7 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
             .data(line_date)
             .enter()
             .append("text")
-            .text(function (d) {
-                return d[0].Name;
-            })
-            .attr("id", function (d, i) {
-                return "text" + i;
-            })
+            .text(text)
             .style("visibility", "visible")
             .attr("class", "labelText")
             .attr("x", circle_x)
@@ -444,26 +428,12 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
                 var index = (x_slice.length-1)-(line_date[i][0].Ano-x_slice[0]);
                 max.push(line_date[i][index]);
             }
-            /*
-            for (var j=0;j<line_date[i].length;j++){
-
-                if (line_date[i][j].Ano==x_slice[x_slice.length-1]){
-                    if (line_date[i][j].y>=max_y.y){
-                        max_y = line_date[i][j]
-                    }
-
-                    //if (line_date[i][j].y<=min_y.y){
-                      //  min_y = line_date[i][j]
-                    //}
-                }
-            }*/
         }
 
         max.sort(function (a,b) {
             return b.y-a.y;
         });
-        console.log("max");
-        console.log(max);
+
         if (max.length>MAX_TOP){
             min_y = max[MAX_TOP-1].y;
         }else
@@ -488,14 +458,12 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
 
         t.selectAll(".labelText")
             .style("visibility", visibility_y)
+            .text(text)
             .attr("x",function (d) {
                 return circle_x(d)+5;
             })
             .attr("y",function (d) {
                 return circle_y(d)+5;
-            })
-            .text(function (d) {
-                return d[0].Name;
             });
         //update dos circulos
         t.selectAll("circle")
@@ -517,7 +485,7 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
         }else if(currentPausedCenter>x_data.length-windowHalfSize){
             currentPausedCenter = x_data.length-windowHalfSize;
         }
-        console.log("len "+x_data.length);
+
         $( "#slider" ).slider({
             min: 0+windowHalfSize,
             max: x_data.length-windowHalfSize,
