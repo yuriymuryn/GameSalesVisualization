@@ -52,12 +52,44 @@ function processPlatformByYear(structure, years,row){
 }
 
 
+function processPublisherByYear(structure, years,row){
+    var year = +row.Year_of_Release,
+        publisher = row.Publisher,
+        globalSlales = +row.Global_Sales,
+        userScore = +row.User_Score,
+        criticScore = +row.Critic_Score;
+
+
+    // If some field doesn't exist we skip this entry
+    if (!year || !publisher || !globalSlales )
+        return
+
+    if (!years[year])
+        years[year] = [];
+
+
+    if (!structure[publisher]){
+        structure[publisher]= {};//{year :[1,globalSlales,userScore,criticScore]};
+        structure[publisher][year] = [1,globalSlales,userScore,criticScore];
+
+    } else if(!structure[publisher][year]) {
+        structure[publisher][year] = [1,globalSlales,userScore,criticScore];
+    } else {
+        structure[publisher][year][0] += 1;
+        structure[publisher][year][1] += globalSlales;
+        structure[publisher][year][2] = (structure[publisher][year][2]*(structure[publisher][year][0]-1)+userScore)/structure[publisher][year][0]; //avg on fly
+        structure[publisher][year][3] = (structure[publisher][year][3]*(structure[publisher][year][0]-1)+criticScore)/structure[publisher][year][0]; //avg on fly
+    }
+}
+
 //{{year:{platform:[NumJogos,TotalMoney,UserScore,Critic_Score], platform:[...]} }, ...}
 //bases retiradas de http://bl.ocks.org/lucassus/3878348
-function generatePlatformByYear(dat, years,div_id) {
+function generatePlatformByYear(dat, dat1,years,div_id) {
 
     var MAX_TOP = 4;
-    var scoreMethod = 0;//0-sales, 1-userscore, 2- critic_score
+    var currentScoreMethod = 0;//0-sales, 1-userscore, 2- critic_score
+
+    var usingDate = dat;
 
     var margin = {top: 30, right: 50, bottom: 40, left: 40};
     var width = 800 - margin.left - margin.right;
@@ -69,37 +101,38 @@ function generatePlatformByYear(dat, years,div_id) {
     var animationDelay = 1500;
     var playDelay = 1500;
 
-    //dados para o eixo dos X
-    var x_data = [];
-    anos = Object.keys(years);
-    for (var i = anos[0]; i <= anos[anos.length - 1]; i++)
-        x_data.push(i);
-
-    console.log(x_data);
+    var line_date = null;//line_date1,line_date2
+    var x_data = null;//dados para o eixo dos X
 
     function createDataForLines(mode) {
-        var temp = [];
-        for (var platform in dat) {
-            if (dat.hasOwnProperty(platform)) {
+        line_date = [];
+        var min_ano = 2017;
+        var max_ano = 1977;
+        for (var platform in usingDate) {
+            if (usingDate.hasOwnProperty(platform)) {
                 var line_points = [];
+                var atLeastOnePointDiffZero = false;
                 //completar com 0 os anos inexistentes
-                var anos = Object.keys(dat[platform]);
+                var anos = Object.keys(usingDate[platform]);
 
                 for (var i = anos[0]; i <= anos[anos.length - 1]; i++) {
-                    if (!dat[platform][i]) {//nao exsite ano
+                    if (!usingDate[platform][i]) {//nao exsite ano
                         line_points.push({
                             "Ano": i,
                             "y": 0,
                             "Name": platform
                         });
                     } else {
+
                         var y;
                         if (mode == 0)
-                            y = dat[platform][i][1];
+                            y = usingDate[platform][i][1];
                         else if (mode == 1)
-                            y = dat[platform][i][2];
+                            y = usingDate[platform][i][2];
                         else if (mode == 2)
-                            y = dat[platform][i][3];
+                            y = usingDate[platform][i][3];
+                        if (y!=0)
+                            atLeastOnePointDiffZero = true;
                         line_points.push({
                             "Ano": +i,
                             "y": y,
@@ -109,10 +142,22 @@ function generatePlatformByYear(dat, years,div_id) {
                         });
                     }
                 }
-                temp.push(line_points);
+                if (atLeastOnePointDiffZero) {
+                    //console.log("insert "+platform);
+                    if (anos[0]<min_ano){
+                        min_ano = anos[0]
+                    }
+                    if (anos[anos.length - 1]>max_ano){
+                        max_ano = anos[anos.length - 1]
+                    }
+                    line_date.push(line_points);
+                }
             }
         }
-        return temp;
+
+        x_data = [];
+        for (var i = min_ano; i <= max_ano; i++)
+            x_data.push(i);
     }
 
     function getRandomColor() {
@@ -125,17 +170,19 @@ function generatePlatformByYear(dat, years,div_id) {
     }
 
     var colors = [];
-    for (var i = 0; i < Object.keys(dat).length; i++) {
+    for (var i = 0; i < 53; i++) {
         colors.push(getRandomColor());
     }
 
     //criar os dados das linhas ex: 2 linhas com 2 pontos
-    // [[{Ano,y,Name,Color},{Ano,y,Name,Color}],[{Ano,y,Name,Color},{Ano,y,Name,Color}]]
 
-    var line_date = createDataForLines(0);//line_date1,line_date2
     console.log(dat);
 
+    // [[{Ano,y,Name,Color},{Ano,y,Name,Color}],[{Ano,y,Name,Color},{Ano,y,Name,Color}]]
+    //cria data e preenche var line_date e x_date
+    createDataForLines(currentScoreMethod);
 
+    console.log(x_data);
 
 
     console.log("data");
@@ -252,18 +299,6 @@ function generatePlatformByYear(dat, years,div_id) {
         END
      */
 
-    /*####  Criar o metodo que gera as linhas para SVG  ###*/
-    var lines = [];
-    for (i = 0; i < line_date.length; i++)
-        lines.push(d3.line()
-            .curve(d3.curveCardinal)
-            .x(function (d) {
-                return extend_x_scale(d.Ano);
-            })
-            .y(function (d) {
-                return y_scale(d.y);
-            }));
-
 
     /**
      * CRIAÇÃO DOS ELEMENTOS SVG
@@ -314,9 +349,23 @@ function generatePlatformByYear(dat, years,div_id) {
         .attr("x", margin.left)
         .attr("y", "0")
         .attr("width", width - (margin.left))
-        .attr("height", height);
+        .attr("height", height+5);
 
+
+    var lines = null;
     function addLinesToSVG() {
+        lines = [];
+        /*####  Criar o metodo que gera as linhas para SVG  ###*/
+        for (i = 0; i < line_date.length; i++)
+            lines.push(d3.line()
+                .curve(d3.curveCardinal)
+                .x(function (d) {
+                    return extend_x_scale(d.Ano);
+                })
+                .y(function (d) {
+                    return y_scale(d.y);
+                }));
+
         //linhas
         svg.selectAll("linha").data(line_date)
             .enter()
@@ -407,7 +456,7 @@ function generatePlatformByYear(dat, years,div_id) {
         $("#top").text("Top: "+max_y.Name+" : "+max_y.y.toFixed(2));
 
         //console.log("max_y "+max_y+" min_y "+min_y);
-        y_scale.domain([0,max_y.y+(max_y.y*1.43-max_y.y)]);//static
+        y_scale.domain([0,max_y.y+(max_y.y*1.43-max_y.y)+2]);//static
 
         //começar transição de todos os elementos selecionados
         var t = svg.transition().duration(animationDelay);//.ease(d3.easeCircleIn)
@@ -445,6 +494,13 @@ function generatePlatformByYear(dat, years,div_id) {
 
     //botao de slider
     function resetCenterSlider() {
+
+        if (currentPausedCenter<windowHalfSize){
+            currentPausedCenter = windowHalfSize;
+        }else if(currentPausedCenter>x_data.length-windowHalfSize){
+            currentPausedCenter = x_data.length-windowHalfSize;
+        }
+        console.log("len "+x_data.length);
         $( "#slider" ).slider({
             min: 0+windowHalfSize,
             max: x_data.length-windowHalfSize,
@@ -457,6 +513,13 @@ function generatePlatformByYear(dat, years,div_id) {
     }
     resetCenterSlider();
 
+    function updateLines() {
+        createDataForLines(currentScoreMethod);
+        removeLinesFromSVG();
+        addLinesToSVG();
+        resetCenterSlider();
+        slideWindow(currentPausedCenter);
+    }
 
     $( "#sliderWindowHalfSize" ).slider({
         min: 2,
@@ -486,6 +549,8 @@ function generatePlatformByYear(dat, years,div_id) {
         }
         if (i>x_data.length-windowHalfSize){
             currentPausedCenter = windowHalfSize;
+            $("#play").text("PLAY");
+            pause = true;
             return;
         }
 
@@ -505,25 +570,40 @@ function generatePlatformByYear(dat, years,div_id) {
     });
 
     $("#salesbtn").click(function (ev) {
-        line_date = createDataForLines(0);
-        removeLinesFromSVG();
-        addLinesToSVG();
-        slideWindow(currentPausedCenter);
+        if (currentScoreMethod==0)
+            return ;
+        currentScoreMethod = 0;
+        updateLines();
     });
 
     $("#userScorebtn").click(function (ev) {
-        line_date = createDataForLines(1);
-        removeLinesFromSVG();
-        addLinesToSVG();
-        slideWindow(currentPausedCenter);
+        if (currentScoreMethod==1)
+            return ;
+        currentScoreMethod = 1;
+        updateLines();
     });
 
     $("#criticScorebtn").click(function (ev) {
-        line_date = createDataForLines(2);
-        removeLinesFromSVG();
-        addLinesToSVG();
-        slideWindow(currentPausedCenter);
+        if (currentScoreMethod==2)
+            return ;
+        currentScoreMethod = 2;
+        updateLines();
     });
+
+    $("#platformbtn").click(function (ev) {
+        if (usingDate == dat)
+            return;
+        usingDate = dat;
+        updateLines();
+    });
+
+    $("#publisherbtn").click(function (ev) {
+        if (usingDate == dat1)
+            return;
+        usingDate = dat1;
+        updateLines();
+    });
+
     addLinesToSVG();
     slideWindow(currentPausedCenter);
 }
