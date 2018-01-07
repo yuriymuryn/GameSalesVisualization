@@ -77,6 +77,19 @@ function generatePlatformByYear(dat, years,div_id) {
 
     console.log(x_data);
 
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    var colors=[];
+    for (var i =0;i<Object.keys(dat).length;i++){
+        colors.push(getRandomColor());
+    }
 
     //criar os dados das linhas ex: 2 linhas com 2 pontos
     // [[{Ano,y,Name,Color},{Ano,y,Name,Color}],[{Ano,y,Name,Color},{Ano,y,Name,Color}]]
@@ -239,6 +252,7 @@ function generatePlatformByYear(dat, years,div_id) {
     var lines =[];
     for (i =0;i<line_date.length;i++)
         lines.push(d3.line()
+            .curve(d3.curveCardinal)
             .x(function (d) {
                 return extend_x_scale(d.Ano);
             })
@@ -289,6 +303,7 @@ function generatePlatformByYear(dat, years,div_id) {
             .attr("class", "path")
             .attr("id", "line"+i)
             .attr("clip-path", "url(#clip)")
+            .attr('stroke',colors[i])
             .attr("d", lines[i](line_date[i]));
     }
 
@@ -316,9 +331,9 @@ function generatePlatformByYear(dat, years,div_id) {
         })
         .attr("cx", circle_x)
         .attr("cy", circle_y)
-        .attr("fill", "white")
-        .attr("class","labelText")
-        .attr("stroke","black")
+        .attr("fill", function (d,i) {
+            return colors[i];
+        })
         .style("visibility", "visible")
         .attr("r", function (d, i) {
             return 5;
