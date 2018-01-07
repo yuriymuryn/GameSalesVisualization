@@ -66,6 +66,8 @@ function generatePlatformByYear(dat, years,div_id) {
     var windowHalfSize = 3;
     var pause = true;
     var currentPausedCenter = windowHalfSize;
+    var animationDelay = 1500;
+    var playDelay = 1500;
 
     //dados para o eixo dos X
     var x_data =[];
@@ -355,7 +357,7 @@ function generatePlatformByYear(dat, years,div_id) {
         y_scale.domain([max_y-50,max_y+50]);//static
 
         //começar transição de todos os elementos selecionados
-        var t = svg.transition().duration(1500);
+        var t = svg.transition().duration(animationDelay);
 
         //escala y e x para o novo dominio de visualização
         t.select(".y.axis").call(y_axis);
@@ -437,7 +439,7 @@ function generatePlatformByYear(dat, years,div_id) {
 
         $("#slider").slider('value',i);
         slideWindow(i);
-        setTimeout(loop,1800,i+1);
+        setTimeout(loop,playDelay,i+1);
     }
 
     $("#play").click(function (ev) {
