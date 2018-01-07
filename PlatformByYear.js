@@ -277,15 +277,30 @@ function generatePlatformByYear(dat, years,div_id) {
 
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(x_axis);
+        .attr("transform", "translate(0," + (height+5) + ")")
+        .call(x_axis)
+        .append("text")
+        .attr("class", "axisLegend")
+        .attr("x", width/2+5)
+        .attr("y", 25)
+        .style("text-anchor", "middle")
+        .attr("fill", "#000")
+        .text("Anos");
 
     var y_axis = d3.axisLeft(y_scale);
 
     svg.append("g")
         .attr("class", "y axis")
         .attr("transform", "translate("+margin.left+",0)")
-        .call(y_axis);
+        .call(y_axis)
+        .append("text")
+        .attr("class", "axisLegend")
+        .attr("transform","rotate(-90)")
+        .attr("x", -height/2)
+        .attr("y", -margin.left+15)
+        .style("text-anchor", "middle")
+        .attr("fill", "#000")
+        .text("Game Sales (in millions)");
 
     svg.append("defs")
         .append("clipPath")
@@ -300,7 +315,7 @@ function generatePlatformByYear(dat, years,div_id) {
     //linhas
     for (var i=0;i<line_date.length;i++) {
         svg.append("path")
-            .attr("class", "path")
+            .attr("class", "linha")
             .attr("id", "line"+i)
             .attr("clip-path", "url(#clip)")
             .attr('stroke',colors[i])
@@ -352,24 +367,27 @@ function generatePlatformByYear(dat, years,div_id) {
 
         //calcular o dominio em y para os TOP
         //por agora esta a ver o max e min
-        var min_y = 9999999999999999999;
-        var max_y = 0;
+        var min_y = {y:9999999999999999999};
+        var max_y = {y:0};
 
         for (var i=0;i<line_date.length;i++){
             for (var j=0;j<line_date[i].length;j++){
 
                 if (line_date[i][j].Ano==x_slice[x_slice.length-1]){
-                    if (line_date[i][j].y>=max_y){
-                        max_y = line_date[i][j].y
+                    if (line_date[i][j].y>=max_y.y){
+                        max_y = line_date[i][j]
                     }
-                    if (line_date[i][j].y<=min_y){
-                        min_y = line_date[i][j].y
+                    if (line_date[i][j].y<=min_y.y){
+                        min_y = line_date[i][j]
                     }
                 }
             }
         }
+
+        $("#top").text("Top: "+max_y.Name+" : "+max_y.y.toFixed(2));
+
         //console.log("max_y "+max_y+" min_y "+min_y);
-        y_scale.domain([max_y-50,max_y+50]);//static
+        y_scale.domain([0,max_y.y+10]);//static
 
         //começar transição de todos os elementos selecionados
         var t = svg.transition().duration(animationDelay);

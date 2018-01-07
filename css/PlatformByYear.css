@@ -1,8 +1,13 @@
 
 
-path {
-    stroke-width: 2;
+.linha {
+    stroke-width: 3;
     fill: none;
+}
+
+.topLabel {
+    display: block;
+    text-align: center;
 }
 
 .hide {
