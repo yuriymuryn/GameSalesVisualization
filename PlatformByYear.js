@@ -64,16 +64,22 @@ function generatePlatformByYear(dat, years,div_id) {
     var height = 400 - margin.top - margin.bottom;
 
     var windowHalfSize = 3;
+    var pause = true;
+    var currentPausedCenter = windowHalfSize;
 
+    //dados para o eixo dos X
     var x_data =[];
-
-    var line_date = [];//line_date1,line_date2
-
     anos = Object.keys(years);
     for (var i=anos[0];i<=anos[anos.length-1];i++)
         x_data.push(i);
 
+    console.log(x_data);
 
+
+    //criar os dados das linhas ex: 2 linhas com 2 pontos
+    // [[{Ano,y,Name,Color},{Ano,y,Name,Color}],[{Ano,y,Name,Color},{Ano,y,Name,Color}]]
+
+    var line_date = [];//line_date1,line_date2
     console.log(dat);
     for (var platform in dat) {
         if (dat.hasOwnProperty(platform)) {
@@ -111,8 +117,6 @@ function generatePlatformByYear(dat, years,div_id) {
 
         }
     }
-    console.log(line_date);
-    console.log(x_data);
 
 
     console.log("data");
@@ -123,8 +127,10 @@ function generatePlatformByYear(dat, years,div_id) {
 
     //var x_scale = d3.scaleLinear().domain([0, data.length]).range([0, width]);
 
+    //criação de escala descontinua, NOTA para datas o prof tinha dito para usar o Point
     var x_scale = d3.scalePoint().domain(x_data).range([margin.left, width]);
 
+    //função que extende as funcionalidades de x_scale para escala continua
     function extend_x_scale(ano){
         var domain = x_scale.domain();
 
@@ -144,8 +150,7 @@ function generatePlatformByYear(dat, years,div_id) {
         return  x;
     }
 
-    console.log("step "+x_scale.step());
-
+    //encontrar o limite do dominio do Y, nao necessario visto que o slideWindow vai dar override
     var min_y = 9999999999999999999;
     var max_y = 0;
 
@@ -160,70 +165,15 @@ function generatePlatformByYear(dat, years,div_id) {
             }
         }
     }
-
-
     var y_scale = d3.scaleLinear().domain([min_y,max_y]).range([height, 0]);
 
-    /*####  Criar o metodo que gera as linhas d3  ###*/
-    var lines =[];
-    for (i =0;i<line_date.length;i++)
-        lines.push(d3.line()
-            .x(function (d) {
-
-                return extend_x_scale(d.Ano);
-            })
-            .y(function (d) {
-                return y_scale(d.y);
-            }));
-
-
-
-    var svg = d3.select("#visualisationY")
-        .append("svg")
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom);
-
-    var g = svg.append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    var x_axis = d3.axisBottom(x_scale).tickSize(-height);
-
-    svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(x_axis);
-
-    var y_axis = d3.axisLeft(y_scale);
-
-    svg.append("g")
-        .attr("class", "y axis")
-        .attr("transform", "translate("+margin.left+",0)")
-        .call(y_axis);
-
-    var clip = svg.append("defs")
-        .append("clipPath")
-        .attr("id", "clip")
-        .append("rect")
-        .attr("id", "clip-rect")
-        .attr("x", margin.left)
-        .attr("y", "0")
-        .attr("width", width-(margin.left))
-        .attr("height", height);
-
-    //linhas
-    for (var i=0;i<line_date.length;i++) {
-        svg.append("path")
-            .attr("class", "path")
-            .attr("id", "line"+i)
-            .attr("clip-path", "url(#clip)")
-            .attr("d", lines[i](line_date[i]));
-    }
-
+    /*
+        FUNÇÕES PARA MANIPULAR OS CIRCULOS E O TEXTO, PARA ACOMPANHAR O ULTIMO PONTO DESENHADO DA LINHA
+     */
 
     function circle_x(d){//ultimo ponto a ser desenhado
         var domain = x_scale.domain();
         var ano = domain[domain.length-1];
-
 
         var ano_min = 2016;
         var ano_max = 1978;
@@ -233,7 +183,6 @@ function generatePlatformByYear(dat, years,div_id) {
             if (d[i].Ano<ano_min)
                 ano_min = d[i].Ano;
         }
-
 
         if (ano_max>=ano && ano_min<=ano){
             //esta no domino
@@ -280,6 +229,68 @@ function generatePlatformByYear(dat, years,div_id) {
         return "visible";
     }
 
+    /*
+        END
+     */
+
+    /*####  Criar o metodo que gera as linhas para SVG  ###*/
+    var lines =[];
+    for (i =0;i<line_date.length;i++)
+        lines.push(d3.line()
+            .x(function (d) {
+                return extend_x_scale(d.Ano);
+            })
+            .y(function (d) {
+                return y_scale(d.y);
+            }));
+
+
+    /**
+     * CRIAÇÃO DOS ELEMENTOS SVG
+     */
+
+    var svg = d3.select("#visualisationY")
+        .append("svg")
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+
+    var g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var x_axis = d3.axisBottom(x_scale).tickSize(-height);
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(x_axis);
+
+    var y_axis = d3.axisLeft(y_scale);
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .attr("transform", "translate("+margin.left+",0)")
+        .call(y_axis);
+
+    svg.append("defs")
+        .append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("id", "clip-rect")
+        .attr("x", margin.left)
+        .attr("y", "0")
+        .attr("width", width-(margin.left))
+        .attr("height", height);
+
+    //linhas
+    for (var i=0;i<line_date.length;i++) {
+        svg.append("path")
+            .attr("class", "path")
+            .attr("id", "line"+i)
+            .attr("clip-path", "url(#clip)")
+            .attr("d", lines[i](line_date[i]));
+    }
+
+
     svg.selectAll("labels")
         .data(line_date)
         .enter()
@@ -294,7 +305,7 @@ function generatePlatformByYear(dat, years,div_id) {
         .attr("x",circle_x)
         .attr("y",circle_y);
 
-    var circles = svg.selectAll("circle")
+    svg.selectAll("circle")
         .data(line_date)
         .enter()
         .append("circle")
@@ -313,19 +324,17 @@ function generatePlatformByYear(dat, years,div_id) {
 
 
 
-
-
+    //FUNÇÃO QUE CRIA O EFEITO DE JANELA DESLIZANTE
     function slideWindow(center) {
-
 
         var begin = center-windowHalfSize;
         var end = center+windowHalfSize;
-        console.log("begin:", begin, "end:", end);
+        //console.log("begin:", begin, "end:", end);
         var x_slice = x_data.slice(begin,end);
         x_scale.domain(x_slice);
-        //efeito de transição em ms podemos usar no play
 
         //calcular o dominio em y para os TOP
+        //por agora esta a ver o max e min
         var min_y = 9999999999999999999;
         var max_y = 0;
 
@@ -342,14 +351,17 @@ function generatePlatformByYear(dat, years,div_id) {
                 }
             }
         }
-        console.log("max_y "+max_y+" min_y "+min_y);
+        //console.log("max_y "+max_y+" min_y "+min_y);
         y_scale.domain([max_y-50,max_y+50]);//static
 
+        //começar transição de todos os elementos selecionados
+        var t = svg.transition().duration(1500);
 
-
-        var t = svg.transition().duration(500);
+        //escala y e x para o novo dominio de visualização
         t.select(".y.axis").call(y_axis);
         t.select(".x.axis").call(x_axis);//update eixo x
+
+        //update da linha e do texto
         for (var i=0 ;i< line_date.length;i++) {
             t.select("#line"+i).attr("d", lines[i](line_date[i]));
             t.select("#text"+i)//nao deu com selectAll n sei pq
@@ -365,8 +377,7 @@ function generatePlatformByYear(dat, years,div_id) {
                 });
 
         }
-
-
+        //update dos circulos
         t.selectAll("circle")
             .attr("cx",circle_x)
             .attr("cy", circle_y)
@@ -376,23 +387,47 @@ function generatePlatformByYear(dat, years,div_id) {
             });
 
 
-/*
-        svg.selectAll(".labelText")
-            .attr("x",circle_x)
-            .attr("y",circle_y)
-
-            .text(function (d) {
-                console.log("UPATE ");
-            return d[0].Name+" " +d[0].Ano;
-        });*/
-
     }
 
+    //botao de slider
     $( "#slider" ).slider({
         min: 0+windowHalfSize,
         max: x_data.length-windowHalfSize,
         slide: function( event, ui ) {
             slideWindow( ui.value);
+        }
+    });
+
+    //loop da animação
+    function loop(i) {
+        if (pause==true){
+            currentPausedCenter = i;
+            return;
+        }
+        if (i>x_data.length-windowHalfSize){
+            currentPausedCenter = windowHalfSize;
+            return;
+        }
+
+        $("#slider").slider('value',i);
+        slideWindow(i);
+        setTimeout(loop,1800,i+1);
+    }
+
+    $("#play").click(function (ev) {
+        pause = !pause;
+        if (pause==false) {
+
+            if (currentPausedCenter<windowHalfSize){
+                currentPausedCenter = windowHalfSize;
+            }else if(currentPausedCenter>x_data.length-windowHalfSize){
+                currentPausedCenter = x_data.length-windowHalfSize;
+            }
+
+            loop(currentPausedCenter);
+            $(this).text("PAUSE");
+        }else{
+            $(this).text("PLAY");
         }
     });
 
