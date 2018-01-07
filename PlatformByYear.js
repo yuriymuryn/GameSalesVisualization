@@ -437,27 +437,44 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
         //por agora esta a ver o max e min
         //var min_y = {y:9999999999999999999};
         var max_y = {y:0};
-
+        var max = [];
         for (var i=0;i<line_date.length;i++){
+
+            if (line_date[i][0].Ano<=x_slice[x_slice.length-1]&&line_date[i][line_date[i].length-1].Ano>=x_slice[x_slice.length-1]){
+                var index = (x_slice.length-1)-(line_date[i][0].Ano-x_slice[0]);
+                max.push(line_date[i][index]);
+            }
+            /*
             for (var j=0;j<line_date[i].length;j++){
 
                 if (line_date[i][j].Ano==x_slice[x_slice.length-1]){
                     if (line_date[i][j].y>=max_y.y){
                         max_y = line_date[i][j]
                     }
-                    /*
-                    if (line_date[i][j].y<=min_y.y){
-                        min_y = line_date[i][j]
-                    }*/
+
+                    //if (line_date[i][j].y<=min_y.y){
+                      //  min_y = line_date[i][j]
+                    //}
                 }
-            }
+            }*/
         }
 
-        $("#top").text("Top: "+max_y.Name+" : "+max_y.y.toFixed(2));
+        max.sort(function (a,b) {
+            return b.y-a.y;
+        });
+        console.log("max");
+        console.log(max);
+        if (max.length>MAX_TOP){
+            min_y = max[MAX_TOP-1].y;
+        }else
+            min_y = 0;
+
+        var may_y = max[0].y;
+        $("#top").text("Top: "+max[0].Name+" : "+may_y.toFixed(2));
 
         //console.log("max_y "+max_y+" min_y "+min_y);
-        y_scale.domain([0,max_y.y+(max_y.y*1.43-max_y.y)+2]);//static
-
+       // y_scale.domain([0,max_y.y+(max_y.y*1.43-max_y.y)+2]);//static
+        y_scale.domain([min_y-1,may_y+((may_y-min_y)*1.33-(may_y-min_y))]);//static
         //começar transição de todos os elementos selecionados
         var t = svg.transition().duration(animationDelay);//.ease(d3.easeCircleIn)
 
