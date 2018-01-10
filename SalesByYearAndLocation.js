@@ -13,7 +13,6 @@ function SalesByYearAndLocation() {
     this.location_lagend = ["Europe", "North America", "Japan", "Rest of the World"];
     this.labels = ["eu","na","jp","rest"];
     this.colors = ["#98abc5", "#8a89a6", "#7b6888", "#6b486b"];
-    //this.colors = ["#ed2d2e", "#008c47", "#1859a9", "#f37d22"];
 
     // SIZES
     this.width;     // div width
@@ -156,18 +155,42 @@ function SalesByYearAndLocation() {
     }
 
     function addButtons(div_id) {
-        self.top_group.append("rect")
+        // Define the div for the tooltip
+        self.tooltip_div = d3.select(div_id).append("div").attr("class","tooltip").style("visibility", "hidden");
+
+        self.btn1 = self.top_group.append("rect")
+            .attr("class", "btnView selectedView")
             .attr("x", 0)
             .attr("width", 25)
             .attr("height", 30)
             .on("click",btnTotalCallback)
+            .on("mouseover", function(){return self.tooltip_div.style("visibility", "visible").text("View number of sales");})
+            .on("mousemove", function(){return self.tooltip_div.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+            .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");});
         
-        self.top_group.append("rect")
+        self.top_group.append("text")
+                .attr("x", 8)
+                .attr("y", 22)
+                .attr("class", "btwViewText")
+                .text("#");
+
+        self.btn2 = self.top_group.append("rect")
+            .attr("class", "btnView")
             .attr("x", 0)
             .attr("y", 35)
             .attr("width", 25)
             .attr("height", 30)
             .on("click",btnPercCallback)
+            .on("mouseover", function(){return self.tooltip_div.style("visibility", "visible").text("View percentage of sales");})
+            .on("mousemove", function(){return self.tooltip_div.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+            .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");});
+        
+        
+        self.top_group.append("text")
+            .attr("x", 4)
+            .attr("y", 57)
+            .attr("class", "btwViewText")
+            .text("%");
     }
 
     function getSizes(div_id){
@@ -198,6 +221,9 @@ function SalesByYearAndLocation() {
 
         self.legend.style("opacity", 1);
         self.selected_location = null;
+
+        self.btn1.attr("class", "btnView selectedView");
+        self.btn2.attr("class", "btnView");
     }
     function btnPercCallback() {
         self.selected_view = 1;
@@ -215,16 +241,19 @@ function SalesByYearAndLocation() {
 
         self.legend.style("opacity", 1);
         self.selected_location = null;
+
+        self.btn2.attr("class", "btnView selectedView");
+        self.btn1.attr("class", "btnView");
     }
 
     function callbackMouseOverYear(d){
-        let selectedYear = d.data.year;
+        var selectedYear = d.data.year;
         
         self.serie.selectAll("rect")
             .style("opacity", function(d) {
                 if (d.data.year == selectedYear) {
                     self.clickInfo.text(function(t) { 
-                        let l = self.labels[self.location_lagend.indexOf(t)];
+                        var l = self.labels[self.location_lagend.indexOf(t)];
                         
                         if (self.selected_view==0)
                             return parseFloat(d.data[l]).toFixed(2) + " M";
@@ -241,15 +270,10 @@ function SalesByYearAndLocation() {
     function callbackMouseOutYear(d){
         self.serie.selectAll("rect").style("opacity", 1);
         self.clickInfo.text(function(t) { return ""; })
-
-        self.serie.selectAll("rect")
-            .style("opacity", 1);
-        self.clickInfox
-            .text(function(t) { return ""; });
     }
 
     function callbackClickLocation(d){
-        let selectedLocation = d;
+        var selectedLocation = d;
         var idx = self.location_lagend.indexOf(d);
 
         if (self.selected_location == selectedLocation) {
@@ -317,14 +341,14 @@ function SalesByYearAndLocation() {
     }
 
     function callbackMouseOverLocation(d){ 
-        let selectedLocation = d;
+        var selectedLocation = d;
         self.legend.style("stroke", function(d) {
             return d == selectedLocation ? "black" : "none";
         });
     }
 
     function callbackMouseOutLocation(d){ 
-        let selectedLocation = d;
+        var selectedLocation = d;
         self.legend.style("stroke", "none");
     }
 }

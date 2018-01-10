@@ -95,3 +95,35 @@ body {
     font-size: 14px;
     fill: rgb(87, 87, 87);
 }
+
+.btnView {
+    fill: #dfdfdf;
+    stroke: black;
+}
+.btnView:hover {
+    opacity: 0.5;
+}
+.selectedView {
+    fill: #fc9e72;
+    stroke: rgb(107, 40, 2);
+    
+}
+.tooltip {	
+    position: absolute;
+    z-index: 10;
+    background-color: black;
+    opacity: 0.8;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    font-family: 'Oxygen', sans-serif;    
+    font-size: 17px;
+}
+.btwViewText {
+    fill: black;
+    font-size: 20px;
+    font-weight: bold;
+    pointer-events: none;
+    font-family: 'Oxygen', sans-serif;    
+}
+
