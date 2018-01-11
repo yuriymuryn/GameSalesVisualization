@@ -14,6 +14,7 @@ function PlatformPublisherByYear() {
     this.width;
     this.height;
 
+    this.labelPadding = 15;
     this.yPadding_xlegend = 10;
 
     this.windowHalfSize = 3;
@@ -43,6 +44,7 @@ function PlatformPublisherByYear() {
     this.top_value;
     this.top_label;
     this.g;
+    this.labelWindowHalfSize;
 
     this.graphHtmlSlider;
 
@@ -70,7 +72,8 @@ function PlatformPublisherByYear() {
         "WiiU":"Wii U",
         "GEN":"Mega Drive",
         "DC":"Dream Cast",
-        "Atari":"Atari 2600"
+        "Atari":"Atari 2600",
+        "3DS":"Nitendo 3DS"
     };
 
     this.processRow = function(row) {
@@ -126,7 +129,7 @@ function PlatformPublisherByYear() {
             .attr("class", "axisLegend")
             .attr("transform", "rotate(-90)")
             .attr("x", -this.height / 2)
-            .attr("y", -this.margin.left + 15)
+            .attr("y", -this.margin.left + 10)
             .style("text-anchor", "middle")
             .attr("fill", "#000")
             .text("Game Sales (in millions)");
@@ -179,16 +182,19 @@ function PlatformPublisherByYear() {
             .style( "margin-left","15%")
             .style( "margin-top","10px");
 
-        div.append("label")
+        this.labelWindowHalfSize = div.append("label")
             .style("float","left")
-            .style("margin-left","10%")
-            .text("Window Size");
+            .style("position","relative")
+            .style("top","-563px")
+            .style("margin-left","290px")
+            .text("Número de anos: "+self.windowHalfSize);
 
         div.append("div")
             .attr("id","sliderWindowHalfSize")
-            .style("width","40%")
-            .style( "margin-right","auto")
-            .style( "margin-left","auto");
+            .style("width","20%")
+            .style("top","-563px")
+            .style( "margin-left","420px")
+            .style( "margin-top","4px");
 
 
         $( "#sliderWindowHalfSize" ).slider({
@@ -203,6 +209,8 @@ function PlatformPublisherByYear() {
                 }else if(self.currentPausedCenter>self.x_data.length-self.windowHalfSize){
                     self.currentPausedCenter = self.x_data.length-self.windowHalfSize;
                 }
+
+                self.labelWindowHalfSize.text("Número de anos: "+self.windowHalfSize);
 
                 resetCenterSlider();
                 console.log("windowHalfSize: value: "+ui.value+" "+self.currentPausedCenter);
@@ -316,7 +324,7 @@ function PlatformPublisherByYear() {
     function processData(mode) {
         self.line_date = [];
         var min_ano = 2017;
-        var max_ano = 1977;
+        var max_ano = 1976;
         for (var platform in self.usingData) {
             if (self.usingData.hasOwnProperty(platform)) {
                 var line_points = [];
@@ -460,7 +468,7 @@ function PlatformPublisherByYear() {
     }
 
     function text(d) {
-        return d[0].Name.split(" ")[0] + " " +d[getCircleObejctInDomain(d)].y.toFixed(2);
+        return d[0].Name.split(" ")[0];
     }
 
 
@@ -517,8 +525,33 @@ function PlatformPublisherByYear() {
             .attr("class", "labelText")
             .attr("x", point_x)
             .attr("y", point_y)
-            .on("mouseover", function(){return self.tooltip_div.style("visibility", "visible").text("Use platform Data");})
-            .on("mousemove", function(){return self.tooltip_div.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+            .on("mouseover", function(d){
+                var selectedPoint = d[getCircleObejctInDomain(d)];
+                var data = [];
+                var y_max = self.y_scale.range()[0];
+
+                for (var i=0;i<self.line_date.length;i++){
+                    var lIndice = getCircleObejctInDomain(self.line_date[i]);
+                    var sel_y = self.y_scale(selectedPoint.y);
+                    var line_y = self.y_scale(self.line_date[i][lIndice].y);
+                    //console.log(self.line_date[i][lIndice].Ano,selectedPoint.Ano)
+                    if (self.line_date[i][lIndice].Ano==selectedPoint.Ano
+                        && line_y<=y_max
+                        && sel_y+self.labelPadding>line_y
+                        && sel_y-self.labelPadding<line_y){
+                        if (!self.platformNameConvertor[self.line_date[i][lIndice].Name])
+                            data.push(self.line_date[i][lIndice].Name+" - "+self.line_date[i][lIndice].y.toFixed(2));
+                        else
+                            data.push(self.platformNameConvertor[self.line_date[i][lIndice].Name]+" - "+self.line_date[i][lIndice].y.toFixed(2));
+                    }
+                }
+                data.sort(function (d1,d2) {
+                    return d2.split("-")[1]-d1.split("-")[1];
+                });
+                //console.log(data);
+                self.tooltip_div.style("visibility", "visible").html(data.join("<br\>"));
+            })
+            .on("mousemove", function(){return self.tooltip_div.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
             .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");});;
     }
 
@@ -662,32 +695,32 @@ function PlatformPublisherByYear() {
         var btnGrp = self.svg.append("g");
         self.btn1 = btnGrp.append("rect")
             .attr("class", "btnView selectedView")
-            .attr("x", 0)
-            .attr("width", 100)
+            .attr("x", 40)
+            .attr("width", 95)
             .attr("height", 30)
             .on("click",platformBtnCallback)
             .on("mouseover", function(){return self.tooltip_div.style("visibility", "visible").text("Use platform Data");})
-            .on("mousemove", function(){return self.tooltip_div.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+            .on("mousemove", function(){return self.tooltip_div.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
             .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");});
 
         btnGrp.append("text")
-            .attr("x", 10)
+            .attr("x", 45)
             .attr("y", 22)
             .attr("class", "btwViewText")
             .text("Platform");
 
         self.btn2 = btnGrp.append("rect")
             .attr("class", "btnView")
-            .attr("x", 110)
-            .attr("width", 110)
+            .attr("x", 150)
+            .attr("width", 100)
             .attr("height", 30)
             .on("click", publisherBtnCallback)
             .on("mouseover", function(){return self.tooltip_div.style("visibility", "visible").text("Use publisher Data");})
-            .on("mousemove", function(){return self.tooltip_div.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+            .on("mousemove", function(){return self.tooltip_div.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
             .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");});
 
         btnGrp.append("text")
-            .attr("x", 120)
+            .attr("x", 155)
             .attr("y", 22)
             .attr("class", "btwViewText")
             .text("Publisher");
