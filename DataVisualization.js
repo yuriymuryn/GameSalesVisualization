@@ -19,6 +19,7 @@
 $(document).ready(function(){
     sales_year_location = new SalesByYearAndLocation();
     top_games = new TopGames();
+    platform_publisher = new PlatformPublisherByYear();
     
     d3.csv("data/Video_Game_Sales_as_of_Jan_2017.csv", parseDataset);
 });
@@ -33,6 +34,7 @@ function parseDataset(data) {
         // line processing
         sales_year_location.processRow(data[i]);
         top_games.processRow(data[i]);
+        platform_publisher.processRow(data[i]);
         processPlatformByYear(platform_year,years,data[i]);
         processPublisherByYear(publisher_year,years,data[i])
     }
@@ -42,8 +44,8 @@ function parseDataset(data) {
 
     top_games.draw("#topGames");
 
-
-    generatePlatformByYear(platform_year,publisher_year,years,"#visualisationY");
+    platform_publisher.draw("#visualisationY");
+    //generatePlatformByYear(platform_year,publisher_year,years,"#visualisationY");
 
 }
 
