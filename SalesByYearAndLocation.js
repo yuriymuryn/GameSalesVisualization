@@ -225,6 +225,7 @@ function SalesByYearAndLocation() {
         self.btn1.attr("class", "btnView selectedView");
         self.btn2.attr("class", "btnView");
     }
+    
     function btnPercCallback() {
         self.selected_view = 1;
 

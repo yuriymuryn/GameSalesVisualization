@@ -6,6 +6,7 @@
     <script src="d3/d3.js"></script>
     <script src="jquery.js"></script>
     <script src="jquery-ui.js"></script>
+    <script src="TopGames.js"></script>
     <script src="PlatformByYear.js"></script>
     <script src="SalesByYearAndLocation.js"></script>
 
@@ -33,6 +34,12 @@
         </div>
 
         <div class="vis_div">
+            <div class="vis_title"> Top Games of all time</div>
+            <div id="topGames" class="vis"></div>
+            <div class="vis_text">Falar das conclusoes que se podem tirar com esta cena</div>
+        </div>
+
+        <div class="vis_div">
             <div class="vis_title"> Game sales over time</div>
             <div id="salesYearLocation" class="vis"></div>
             <div class="vis_text">Falar das conclusoes que se podem tirar com esta cena</div>
@@ -44,15 +51,15 @@
             <div class="vis_title"> Visualização YYY</div>
             <label id="top" class="topLabel">Top: </label>
             <div id="visualisationY" class="vis"></div>
-            <div id="slider" style="width: 80%; margin-left:10%; margin-right:10%"></div>
+                <div id="slider" style="width: 80%; margin-left:10%; margin-right:10%"></div>
 
-            <label style="float:left; margin-left: 10%">Window size</label>
-            <div id="sliderWindowHalfSize" style="width: 60%; margin-left:auto; margin-right:auto"></div>
+                <label style="float:left; margin-left: 10%">Window size</label>
+                <div id="sliderWindowHalfSize" style="width: 60%; margin-left:auto; margin-right:auto"></div>
 
-            <button id="play">PLAYYYYYYYYYYYYYYYYYYYYYYYYYY</button>
-            <button id="salesbtn">Sales</button>
-            <button id="userScorebtn">User Score</button>
-            <button id="criticScorebtn">Critic Score</button>
+                <button id="play">PLAYYYYYYYYYYYYYYYYYYYYYYYYYY</button>
+                <button id="salesbtn">Sales</button>
+                <button id="userScorebtn">User Score</button>
+                <button id="criticScorebtn">Critic Score</button>
             <div class="vis_text">Falar das conclusoes que se podem tirar com esta cena</div>
         </div>
     </div>
