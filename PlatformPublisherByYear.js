@@ -68,7 +68,7 @@ function PlatformPublisherByYear() {
         "GBA":"GameBoy Advance",
         "GC":"GameBoy Color",
         "N64":"Nitendo 64",
-        "PC":"Computador",
+        "PC":"Computer",
         "WiiU":"Wii U",
         "GEN":"Mega Drive",
         "DC":"Dream Cast",
@@ -117,7 +117,7 @@ function PlatformPublisherByYear() {
             .attr("y", this.yPadding_xlegend + 25)
             .style("text-anchor", "middle")
             .attr("fill", "#000")
-            .text("Anos");
+            .text("Years");
 
         this.y_axis = d3.axisLeft(this.y_scale);
 
@@ -207,8 +207,8 @@ function PlatformPublisherByYear() {
 
 
         $( "#sliderWindowHalfSize" ).slider({
-            min: 2,
-            max: this.x_data.length/4,//metade das datas
+            min: 1,
+            max: 5,//metade das datas
             value:this.windowHalfSize,
             slide: function( event, ui ) {
 
@@ -221,6 +221,7 @@ function PlatformPublisherByYear() {
 
                 self.labelWindowHalfSize.text("Número de anos: "+self.windowHalfSize*2);
 
+                //console.log();
                 resetCenterSlider();
                 console.log("windowHalfSize: value: "+ui.value+" "+self.currentPausedCenter);
                 slideWindow(self.currentPausedCenter);
@@ -673,8 +674,12 @@ function PlatformPublisherByYear() {
 
             },
             slide: function( event, ui ) {
+                self.pause = true;
+                $("#play").text("Play");
+
                 slideWindow( ui.value);
                 self.currentPausedCenter = ui.value;
+
                 //console.log(self.x_data,self.currentPausedCenter)
                 handle.text(self.x_data[(self.currentPausedCenter+self.windowHalfSize-1)]);
 
@@ -698,7 +703,7 @@ function PlatformPublisherByYear() {
         }
         if (i>self.x_data.length-self.windowHalfSize){
             self.currentPausedCenter = self.x_data.length-self.windowHalfSize;
-            $("#play").text("PLAY");
+            $("#play").text("Play");
             self.pause = true;
             return;
         }
