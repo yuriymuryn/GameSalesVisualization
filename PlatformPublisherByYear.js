@@ -170,6 +170,7 @@ function PlatformPublisherByYear() {
             .style("float","left")
             .style("position","relative")
             .style("top","-110px")
+            .style("width","50px")
             .style("left","40px")
             .style("padding","3px")
             .attr("class","ui-button ui-widget ui-corner-all")
@@ -194,7 +195,7 @@ function PlatformPublisherByYear() {
             .style("float","left")
             .style("position","relative")
             .style("top","-563px")
-            .style("margin-left","240px")
+            .style("margin-left","230px")
             .text("Número de anos: "+self.windowHalfSize*2);
 
         div.append("div")
@@ -445,7 +446,10 @@ function PlatformPublisherByYear() {
     }
 
     function point_x(d) {//ultimo ponto a ser desenhado
-        return extend_x_scale(d[getCircleObejctInDomain(d)].Ano);
+        var t =  extend_x_scale(d[getCircleObejctInDomain(d)].Ano);
+        if (t>self.width+5)
+            return 2000;
+        return t;
     }
 
     function point_y(d) {//ultimo ponto a ser desenhado
