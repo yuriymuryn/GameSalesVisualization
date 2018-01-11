@@ -86,14 +86,44 @@ function processPublisherByYear(structure, years,row){
 //bases retiradas de http://bl.ocks.org/lucassus/3878348
 function generatePlatformByYear(dat, dat1,years,div_id) {
 
+    var platformNameConvertor = {
+      "X" : "Xbox",
+      "X360" : "Xbox 360",
+      "XOne" : "Xbox One",
+      "Wii" : "Nitendo Wii",
+        "NES":"Nintendo Entertainment System",
+        "PS":"Play Station",
+        "PS2":"Play Station 2",
+        "PS3":"Play Station 3",
+        "PS4":"Play Station 4",
+        "PSP":"Play Station Portable",
+        "PSV":"Play Station Vita",
+        "G":"GameBoy",
+        "DS":"Nitendo DS",
+        "SNES":"Super Nitendo",
+        "GBA":"GameBoy Advance",
+        "GC":"GameBoy Color",
+        "N64":"Nitendo 64",
+        "PC":"Computador",
+        "WiiU":"Wii U",
+        "GEN":"Mega Drive",
+        "DC":"Dream Cast"
+    };
+
     var MAX_TOP = 4;
     var currentScoreMethod = 0;//0-sales, 1-userscore, 2- critic_score
 
     var usingDate = dat;
 
     var margin = {top: 30, right: 50, bottom: 40, left: 40};
-    var width = 800 - margin.left - margin.right;
-    var height = 400 - margin.top - margin.bottom;
+
+    var w = $(div_id).width() || 700;
+    var h = $(div_id).height() || 400;
+
+    var width = w - margin.left - margin.right;
+    var height = h - margin.top - margin.bottom;
+
+    var y_xlegend = 10;
 
     var windowHalfSize = 3;
     var pause = true;
@@ -301,16 +331,16 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
     var g = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var x_axis = d3.axisBottom(x_scale).tickSize(-height);
+    var x_axis = d3.axisBottom(x_scale).tickSize(-height).tickPadding(y_xlegend);
 
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(0," + (height + 5) + ")")
-        .call(x_axis)
+        .attr("transform", "translate(0," + (height)+ ")")
+        .call( x_axis)
         .append("text")
         .attr("class", "axisLegend")
         .attr("x", width / 2 + 5)
-        .attr("y", 25)
+        .attr("y", y_xlegend + 25)
         .style("text-anchor", "middle")
         .attr("fill", "#000")
         .text("Anos");
@@ -339,6 +369,27 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
         .attr("y", "0")
         .attr("width", width - (margin.left+margin.right))
         .attr("height", height+5);
+
+
+    var top_div = d3.select(div_id).append("div").attr("class","topdiv")
+        .style("top", (-h+10)+"px")
+        .style("left",10+margin.left+"px");
+
+
+    var image = top_div.append("img")
+        .attr("width","120px")
+        .attr("height","90px")
+        .attr("src","images\\None.jpg")
+        .attr("alt","Image not Found")
+        .style("float","left");
+
+    var text_div = top_div.append("div")
+        .attr("class","divtop");
+    var top_label = text_div.append("p").text("label top")
+        .attr("class","labelTop")
+
+    var top_value = text_div.append("p").text("label top value")
+        .attr("class","labelTop")
 
 
     var lines = null;
@@ -421,12 +472,23 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
         //por agora esta a ver o max e min
         //var min_y = {y:9999999999999999999};
         var max_y = {y:0};
+        var global_max = 0;
         var max = [];
         for (var i=0;i<line_date.length;i++){
 
             if (line_date[i][0].Ano<=x_slice[x_slice.length-1]&&line_date[i][line_date[i].length-1].Ano>=x_slice[x_slice.length-1]){
                 var index = (x_slice.length-1)-(line_date[i][0].Ano-x_slice[0]);
-                max.push(line_date[i][index]);
+                var max_temp = line_date[i][index];
+                max_temp["index"]=i;//guardar o index da linha
+                max.push(max_temp);
+            }
+
+            //maximo global
+            for (var j=0;j<line_date[i].length;j++){
+                // todos os pontos do dominio
+                if (line_date[i][j].Ano>=x_slice[0] && line_date[i][j].Ano<=x_slice[x_slice.length-1] && global_max<line_date[i][j].y){
+                    global_max = line_date[i][j].y;
+                }
             }
         }
 
@@ -440,13 +502,23 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
             min_y = 0;
 
         var may_y = max[0].y;
+
+
         $("#top").text("Top: "+max[0].Name+" : "+may_y.toFixed(2));
+        image.attr("src","images\\"+max[0].Name.split(" ")[0]+".jpg");
+        if (!platformNameConvertor[max[0].Name])
+            top_label.text(max[0].Name);
+        else
+            top_label.text(platformNameConvertor[max[0].Name]);
+        top_value.text(may_y.toFixed(2)+"M sales");
+        //top_div.style("background-color",colors[max[0].index]);
 
         //console.log("max_y "+max_y+" min_y "+min_y);
        // y_scale.domain([0,max_y.y+(max_y.y*1.43-max_y.y)+2]);//static
-        y_scale.domain([min_y-1,may_y+((may_y-min_y)*1.33-(may_y-min_y))]);//static
+        y_scale.domain([min_y,global_max+((global_max-min_y)*1.05-(global_max-min_y))]);//static
         //começar transição de todos os elementos selecionados
         var t = svg.transition().duration(animationDelay);//.ease(d3.easeCircleIn)
+
 
         //escala y e x para o novo dominio de visualização
         t.select(".y.axis").call(y_axis);
@@ -473,6 +545,7 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
             .attr("r", function (d, i) {
                 return 5;
             });
+
 
 
     }
@@ -513,7 +586,6 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
         slide: function( event, ui ) {
 
             windowHalfSize = ui.value;
-
             if (currentPausedCenter<windowHalfSize){
                 currentPausedCenter = windowHalfSize;
             }else if(currentPausedCenter>x_data.length-windowHalfSize){
@@ -533,7 +605,7 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
             return;
         }
         if (i>x_data.length-windowHalfSize){
-            currentPausedCenter = windowHalfSize;
+            currentPausedCenter = x_data.length-windowHalfSize;
             $("#play").text("PLAY");
             pause = true;
             return;
@@ -547,6 +619,8 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
     $("#play").click(function (ev) {
         pause = !pause;
         if (pause==false) {
+            if (currentPausedCenter == (x_data.length - windowHalfSize))
+                currentPausedCenter = windowHalfSize;
             loop(currentPausedCenter);
             $(this).text("PAUSE");
         }else{
@@ -591,4 +665,6 @@ function generatePlatformByYear(dat, dat1,years,div_id) {
 
     addLinesToSVG();
     slideWindow(currentPausedCenter);
+    //axis a negrito
+
 }

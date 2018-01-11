@@ -26,15 +26,33 @@
     stroke-opacity: .5;
 }
 
-.x.axis path {
-    display: none;
-}
 
 .y.axis line, .y.axis path {
     fill: none;
     stroke: #000;
 }
 
-.labelText {
+.divtop{
+    display: table-cell;
+    vertical-align: middle;
+    margin-left: 140px;
+    width: 100%;
+    text-align: center;
+}
+.topdiv {
+    background-color: white;
+    overflow: auto;
+    width: 250px;
+    display: table;
+    position: relative;
+    z-index: 10;
+    opacity: 0.8;
+    padding: 10px;
+    border-radius: 10px;
+    font-family: 'Oxygen', sans-serif;
+    font-size: 17px;
+}
 
+.labelTop {
+    margin: 0;
 }
