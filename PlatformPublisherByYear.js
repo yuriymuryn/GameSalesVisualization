@@ -171,6 +171,8 @@ function PlatformPublisherByYear() {
             .style("position","relative")
             .style("top","-110px")
             .style("left","40px")
+            .style("padding","3px")
+            .attr("class","ui-button ui-widget ui-corner-all")
             .attr("id","play")
             .text("Play");
 
@@ -180,14 +182,20 @@ function PlatformPublisherByYear() {
             .style("top","-115px")
             .style( "margin-right","10%")
             .style( "margin-left","15%")
-            .style( "margin-top","10px");
+            .style( "margin-top","10px")
+            .append("div")
+            .attr("id","custom-handle")
+            .attr("class","ui-slider-handle customHandle")
+            .style("width","3em")
+            .style("height","1.6em")
+            .style("top","50%");
 
         this.labelWindowHalfSize = div.append("label")
             .style("float","left")
             .style("position","relative")
             .style("top","-563px")
-            .style("margin-left","290px")
-            .text("Número de anos: "+self.windowHalfSize);
+            .style("margin-left","240px")
+            .text("Número de anos: "+self.windowHalfSize*2);
 
         div.append("div")
             .attr("id","sliderWindowHalfSize")
@@ -210,7 +218,7 @@ function PlatformPublisherByYear() {
                     self.currentPausedCenter = self.x_data.length-self.windowHalfSize;
                 }
 
-                self.labelWindowHalfSize.text("Número de anos: "+self.windowHalfSize);
+                self.labelWindowHalfSize.text("Número de anos: "+self.windowHalfSize*2);
 
                 resetCenterSlider();
                 console.log("windowHalfSize: value: "+ui.value+" "+self.currentPausedCenter);
@@ -224,9 +232,9 @@ function PlatformPublisherByYear() {
                 if (self.currentPausedCenter == (self.x_data.length - self.windowHalfSize))
                     self.currentPausedCenter = self.windowHalfSize;
                 loop(self.currentPausedCenter);
-                $(this).text("PAUSE");
+                $(this).text("Pause");
             }else{
-                $(this).text("PLAY");
+                $(this).text("Play");
             }
         });
 
@@ -552,7 +560,7 @@ function PlatformPublisherByYear() {
                 self.tooltip_div.style("visibility", "visible").html(data.join("<br\>"));
             })
             .on("mousemove", function(){return self.tooltip_div.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
-            .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");});;
+            .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");});
     }
 
     function removeLinesFromSVG() {
@@ -569,6 +577,7 @@ function PlatformPublisherByYear() {
 
         var begin = center-self.windowHalfSize;
         var end = center+self.windowHalfSize;
+        $("#custom-handle").text(self.x_data[end-1]);
         //console.log("begin:", begin, "end:", end);
         var x_slice = self.x_data.slice(begin,end);
         self.x_scale.domain(x_slice);
@@ -650,14 +659,21 @@ function PlatformPublisherByYear() {
         }else if(self.currentPausedCenter>self.x_data.length-self.windowHalfSize){
             self.currentPausedCenter = self.x_data.length-self.windowHalfSize;
         }
-
+        var handle = $( "#custom-handle" );
         $( "#slider" ).slider({
             min: self.windowHalfSize,
             max: self.x_data.length-self.windowHalfSize,
             value: self.currentPausedCenter,
+            create: function() {
+                handle.text(self.x_data[( $( this ).slider( "value" )+self.windowHalfSize-1)]);
+
+            },
             slide: function( event, ui ) {
                 slideWindow( ui.value);
                 self.currentPausedCenter = ui.value;
+                //console.log(self.x_data,self.currentPausedCenter)
+                handle.text(self.x_data[(self.currentPausedCenter+self.windowHalfSize-1)]);
+
             }
         });
     }

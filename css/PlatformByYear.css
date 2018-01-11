@@ -60,3 +60,14 @@
 .labelTop {
     margin: 0;
 }
+
+
+.customHandle {
+    width: 3em;
+    height: 1.6em;
+    top: 50%;
+    margin-top: -.8em;
+    text-align: center;
+    line-height: 1.6em;
+}
+
