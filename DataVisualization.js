@@ -25,19 +25,15 @@ $(document).ready(function(){
 });
 
 function parseDataset(data) {
-    var platform_year = {};
-    var publisher_year = {};
-    var years = {};
 
     for (var i = 0, len = data.length; i < len; i++) {
-        if (!data[i].Year_of_Release)
-            console.log(data[i])
+        if (data[i].Year_of_Release=="2017")
+            continue;
+
         // line processing
         sales_year_location.processRow(data[i]);
         top_games.processRow(data[i]);
         platform_publisher.processRow(data[i]);
-        processPlatformByYear(platform_year,years,data[i]);
-        processPublisherByYear(publisher_year,years,data[i])
     }
     
     sales_year_location.locations = ["Europe", "North America", "Japan", "Rest of the Word"];
