@@ -10,6 +10,10 @@ function TopGames() {
 
     this.structure = {};
     this.data = [];  
+    this.yearMin;
+    this.yearMax;
+    this.yearMinCurrent;
+    this.yearMaxCurrent;
 
     // SIZES
     this.width;     // div width
@@ -20,14 +24,19 @@ function TopGames() {
 
     this.transition_time = 1000;
 
-    this.selected_view = 0;
+    this.selected_view = "sales";
 
     this.processRow = function(row) {
         var name = row.Name,
             sales = +row.Global_Sales || 0,
             critic = +row.Critic_Score || 0,
             user = +row.User_Score*10 || 0,
-            year = +row.Year_of_Release || 2017;
+            year = +row.Year_of_Release;
+        
+        if (!year) return;
+
+        if (!this.yearMin || this.yearMin > year) this.yearMin = year;
+        if (!this.yearMax || this.yearMax < year) this.yearMax = year;
 
         if (!this.structure[name]){
             this.structure[name] = {"sales": sales, "critic":critic, "user":user, "year":year};
@@ -39,6 +48,9 @@ function TopGames() {
     }
 
     this.draw = function(div_id) {
+        this.yearMinCurrent = this.yearMin;
+        this.yearMaxCurrent = this.yearMax;
+
         getSizes(div_id);
         processData();
 
@@ -47,24 +59,22 @@ function TopGames() {
             .attr('height', this.height);
 
         this.g = this.svg.append("g").attr("transform", "translate(" + this.c_margin.left + "," + this.c_margin.top + ")");
-    
-        addButtons(div_id);
-
         
         this.x = d3.scaleLinear().range([0, this.c_width]);
         this.y = d3.scaleBand().range([this.c_height, 0]).padding(0.1);
-
+        
         /* AXIS */
         this.xaxis = this.g.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + this.c_height  + ")")
-            .call(d3.axisBottom(this.x));
-
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + this.c_height  + ")")
+        .call(d3.axisBottom(this.x));
+        
         this.yaxis = this.g.append("g")
-            .attr("class", "y axis")
-            .call(d3.axisLeft(this.y));
-
-        updateChart("sales");
+        .attr("class", "y axis")
+        .call(d3.axisLeft(this.y));
+        
+        updateChart();
+        addButtons(div_id);
     }
 
     function processData() {
@@ -75,13 +85,12 @@ function TopGames() {
         self.data = arr;
     }
 
-    function orderAndLimitData(data, by, year) {
+    function orderAndLimitData(data, by, yearMin, yearMax) {
         //sort bars based on value
         var new_data = data.sort(function (a, b) {
             return d3.descending(a[by], b[by]);
         }).filter(function (el) {
-            if (!year) return true;
-            return (el.year === year);
+            return (yearMin <= el.year && el.year <= yearMax);
         }).slice(0, 10).reverse();
         return new_data;
     }
@@ -147,12 +156,44 @@ function TopGames() {
             .attr("y", 22)
             .attr("class", "btwViewText")
             .text("Users Rating");
+
+
+        // Year slider
+
+        d3.select(div_id).append("p")
+            .attr("id","yearStart");
+
+        d3.select(div_id).append("div")
+            .attr("id","slider-range-year-top");
+
+        d3.select(div_id).append("p")
+            .attr("id","yearEnd");
+                
+        $( function() {
+            $( "#slider-range-year-top" ).slider({
+                range: true,
+                min: self.yearMin,
+                max: self.yearMax,
+                values: [ self.yearMin, self.yearMax ],
+                slide: function( event, ui ) {
+                    $( "#yearStart" ).html(ui.values[ 0 ]);
+                    self.yearMinCurrent = +ui.values[ 0 ];
+                    $( "#yearEnd" ).html(ui.values[ 1 ]);
+                    self.yearMaxCurrent = +ui.values[ 1 ];
+                    self.g.selectAll(".topserie").remove();
+                    updateChart();
+                }
+            });
+            $( "#yearStart" ).html(self.yearMin);
+            $( "#yearEnd" ).html(self.yearMax);
+        } );
     }
 
     function btnSalesCallback() {
         self.g.selectAll(".topserie").remove();
 
-        updateChart("sales");
+        self.selected_view = "sales";
+        updateChart();
         
         self.btn1.attr("class", "btnView selectedView");
         self.btn2.attr("class", "btnView");
@@ -162,7 +203,8 @@ function TopGames() {
     function btnCriticCallback() {
         self.g.selectAll(".topserie").remove();
 
-        updateChart("critic");
+        self.selected_view = "critic";
+        updateChart();
 
         self.btn1.attr("class", "btnView");
         self.btn2.attr("class", "btnView selectedView");
@@ -172,15 +214,17 @@ function TopGames() {
     function btnUserCallback() {
         self.g.selectAll(".topserie").remove();
 
-        updateChart("user", 2016);
+        self.selected_view = "user";
+        updateChart();
 
         self.btn1.attr("class", "btnView");
         self.btn2.attr("class", "btnView");
         self.btn3.attr("class", "btnView selectedView");
     }
 
-    function updateChart(byValue, year) {
-        var data = orderAndLimitData(self.data, byValue, year);
+    function updateChart() {
+        var byValue = self.selected_view;
+        var data = orderAndLimitData(self.data, byValue, self.yearMinCurrent, self.yearMaxCurrent);
 
         var xmin = 90;
         var xmax = 100;
@@ -192,6 +236,7 @@ function TopGames() {
             xmin = Math.max(d3.min(data, function(d) { return d[byValue] }) - 10, 0);
             xmax = Math.min(d3.max(data, function(d) { return d[byValue] }) + 10, 100);
         }
+
         self.x.domain([xmin, xmax]).nice();
         self.y.domain(data.map(function (d) { return d.name; })).padding(0.1);
 
@@ -221,9 +266,7 @@ function TopGames() {
                 return self.x(d[byValue]) + 10;;
             })
             .text(function(d){
-                let t = byValue == "sales" ? d[byValue] + " M" : d[byValue]
-
-                return t;
+                return byValue == "sales" ? parseFloat(d[byValue]).toFixed(2) + " M" : d[byValue];
             });
 
         self.yaxis.call(d3.axisLeft(self.y).ticks(3));

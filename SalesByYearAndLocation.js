@@ -13,7 +13,7 @@ function SalesByYearAndLocation() {
     this.location_lagend = ["Europe", "North America", "Japan", "Rest of the World"];
     this.labels = ["eu","na","jp","rest"];
     this.colors = ["#98abc5", "#8a89a6", "#7b6888", "#6b486b"];
-
+    
     // SIZES
     this.width;     // div width
     this.height;    // div height

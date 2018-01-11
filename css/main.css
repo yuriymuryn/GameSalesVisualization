@@ -91,7 +91,7 @@ text {
 }
 
 .bar {
-    fill: #cc2ef3;
+    fill: #7b6888;
 }
 
 .axisLegend {
@@ -106,15 +106,15 @@ text {
 }
 
 .btnView {
-    fill: #dfdfdf;
-    stroke: black;
+    fill: #dddddd;
+    stroke: #cccccc;
 }
 .btnView:hover {
     opacity: 0.5;
 }
 .selectedView {
-    fill: #fc9e72;
-    stroke: rgb(107, 40, 2);
+    fill: #f6a828;
+    stroke: #e78f08;
     
 }
 .tooltip {	
@@ -136,3 +136,26 @@ text {
     font-family: 'Oxygen', sans-serif;    
 }
 
+#slider-range-year-top {
+    float: left;
+    width: 568px;
+    margin: 6px 20px;
+}
+
+#topGames {
+    margin-bottom: 70px;
+}
+
+#yearEnd {
+    float: right;
+    font-family: 'Oxygen', sans-serif;  
+    font-size: 20px;
+    margin: 0px;  
+}
+
+#yearStart {
+    float: left;
+    font-family: 'Oxygen', sans-serif;  
+    font-size: 20px;
+    margin: 0px;  
+}
