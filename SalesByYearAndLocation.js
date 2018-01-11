@@ -165,7 +165,7 @@ function SalesByYearAndLocation() {
             .attr("height", 30)
             .on("click",btnTotalCallback)
             .on("mouseover", function(){return self.tooltip_div.style("visibility", "visible").text("View number of sales");})
-            .on("mousemove", function(){return self.tooltip_div.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+            .on("mousemove", function(){return self.tooltip_div.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
             .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");});
         
         self.top_group.append("text")
@@ -182,7 +182,7 @@ function SalesByYearAndLocation() {
             .attr("height", 30)
             .on("click",btnPercCallback)
             .on("mouseover", function(){return self.tooltip_div.style("visibility", "visible").text("View percentage of sales");})
-            .on("mousemove", function(){return self.tooltip_div.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+            .on("mousemove", function(){return self.tooltip_div.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
             .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");});
         
         

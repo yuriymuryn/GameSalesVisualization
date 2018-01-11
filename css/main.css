@@ -2,6 +2,9 @@ body {
     background-color: #416f6f;
 }
 
+text {
+    font-family: 'Oxygen', sans-serif;
+}
 .maincontent {
     background-color: white;
     width: 900px;
@@ -51,6 +54,8 @@ body {
     display: block;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
     /*background-color: #d6d8d8;*/
 }
 .vis svg{
@@ -83,6 +88,10 @@ body {
 .axis {
     font-family: 'Oxygen', sans-serif;
     font-size: 12px;
+}
+
+.bar {
+    fill: #cc2ef3;
 }
 
 .axisLegend {
