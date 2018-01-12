@@ -156,7 +156,8 @@ function PlatformPublisherByYear() {
             .attr("height","90px")
             .attr("src","images\\None.jpg")
             .attr("alt","Image not Found")
-            .style("float","left");
+            .style("float","left")
+            .style("object-fit","contain");
 
         var text_div = top_div.append("div")
             .attr("class","divtop");
@@ -169,7 +170,7 @@ function PlatformPublisherByYear() {
         div.append("button")
             .style("float","left")
             .style("position","relative")
-            .style("top","-110px")
+            .style("top","-105px")
             .style("width","50px")
             .style("left","40px")
             .style("padding","3px")
@@ -180,7 +181,7 @@ function PlatformPublisherByYear() {
         this.graphHtmlSlider = div.append("div")
             .attr("id","slider")
             .style("width","65%")
-            .style("top","-115px")
+            .style("top","-110px")
             .style( "margin-right","10%")
             .style( "margin-left","15%")
             .style( "margin-top","10px")
@@ -553,9 +554,9 @@ function PlatformPublisherByYear() {
                         && sel_y+self.labelPadding>line_y
                         && sel_y-self.labelPadding<line_y){
                         if (!self.platformNameConvertor[self.line_date[i][lIndice].Name])
-                            data.push(self.line_date[i][lIndice].Name+" - "+self.line_date[i][lIndice].y.toFixed(2));
+                            data.push(self.line_date[i][lIndice].Name+" - "+self.line_date[i][lIndice].y.toFixed(2)+"M");
                         else
-                            data.push(self.platformNameConvertor[self.line_date[i][lIndice].Name]+" - "+self.line_date[i][lIndice].y.toFixed(2));
+                            data.push(self.platformNameConvertor[self.line_date[i][lIndice].Name]+" - "+self.line_date[i][lIndice].y.toFixed(2)+"M");
                     }
                 }
                 data.sort(function (d1,d2) {
@@ -579,7 +580,7 @@ function PlatformPublisherByYear() {
 
     //FUNÇÃO QUE CRIA O EFEITO DE JANELA DESLIZANTE
     function slideWindow(center) {
-
+        self.currentPausedCenter = center;
         var begin = center-self.windowHalfSize;
         var end = center+self.windowHalfSize;
         $("#custom-handle").text(self.x_data[end-1]);
@@ -676,9 +677,8 @@ function PlatformPublisherByYear() {
             slide: function( event, ui ) {
                 self.pause = true;
                 $("#play").text("Play");
-
                 slideWindow( ui.value);
-                self.currentPausedCenter = ui.value;
+
 
                 //console.log(self.x_data,self.currentPausedCenter)
                 handle.text(self.x_data[(self.currentPausedCenter+self.windowHalfSize-1)]);
@@ -698,7 +698,6 @@ function PlatformPublisherByYear() {
     //loop da animação
     function loop(i) {
         if (self.pause==true){
-            self.currentPausedCenter = i;
             return;
         }
         if (i>self.x_data.length-self.windowHalfSize){
