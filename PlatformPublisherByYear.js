@@ -553,9 +553,9 @@ function PlatformPublisherByYear() {
                         && sel_y+self.labelPadding>line_y
                         && sel_y-self.labelPadding<line_y){
                         if (!self.platformNameConvertor[self.line_date[i][lIndice].Name])
-                            data.push(self.line_date[i][lIndice].Name+" - "+self.line_date[i][lIndice].y.toFixed(2));
+                            data.push(self.line_date[i][lIndice].Name+" - "+self.line_date[i][lIndice].y.toFixed(2)+"M");
                         else
-                            data.push(self.platformNameConvertor[self.line_date[i][lIndice].Name]+" - "+self.line_date[i][lIndice].y.toFixed(2));
+                            data.push(self.platformNameConvertor[self.line_date[i][lIndice].Name]+" - "+self.line_date[i][lIndice].y.toFixed(2)+"M");
                     }
                 }
                 data.sort(function (d1,d2) {
