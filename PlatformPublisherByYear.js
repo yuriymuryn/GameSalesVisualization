@@ -196,7 +196,7 @@ function PlatformPublisherByYear() {
             .style("position","relative")
             .style("top","-563px")
             .style("margin-left","230px")
-            .text("Número de anos: "+self.windowHalfSize*2);
+            .text("Time frame: "+self.windowHalfSize*2+" years");
 
         div.append("div")
             .attr("id","sliderWindowHalfSize")
@@ -219,7 +219,7 @@ function PlatformPublisherByYear() {
                     self.currentPausedCenter = self.x_data.length-self.windowHalfSize;
                 }
 
-                self.labelWindowHalfSize.text("Número de anos: "+self.windowHalfSize*2);
+                self.labelWindowHalfSize.text("Time frame: "+self.windowHalfSize*2+" years");
 
                 //console.log();
                 resetCenterSlider();
