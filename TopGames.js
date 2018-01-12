@@ -1,4 +1,20 @@
-
+/*
+0: "Name"
+1: "Platform"
+2: "Year_of_Release"
+3: "Genre"
+4: "Publisher"
+5: "NA_Sales"
+6: "EU_Sales"
+7: "JP_Sales"
+8: "Other_Sales"
+9: "Global_Sales"
+10: "Critic_Score"
+11: "Critic_Count"
+12: "User_Score"
+13: "User_Count"
+14: "Rating"
+*/
 function TopGames() {
     var self = this;
 
@@ -31,7 +47,9 @@ function TopGames() {
             sales = +row.Global_Sales || 0,
             critic = +row.Critic_Score || 0,
             user = +row.User_Score*10 || 0,
-            year = +row.Year_of_Release;
+            year = +row.Year_of_Release,
+            genre = row.Genre
+            publisher = row.Publisher;
         
         if (!year) return;
 
@@ -39,7 +57,7 @@ function TopGames() {
         if (!this.yearMax || this.yearMax < year) this.yearMax = year;
 
         if (!this.structure[name]){
-            this.structure[name] = {"sales": sales, "critic":critic, "user":user, "year":year};
+            this.structure[name] = {"sales": sales, "critic":critic, "user":user, "year":year, "genre":genre, "publisher":publisher};
         } else {
             this.structure[name].sales += sales;
             this.structure[name].critic = critic;
@@ -247,12 +265,16 @@ function TopGames() {
 
         //append rects
         self.serie.append("rect")
+            .on("mouseover", function(d){return self.tooltip_div.style("visibility", "visible").html("Year of realease: "+d.year+"<br/>Genre: "+d.genre+"<br/>Publisher: "+d.publisher);})
+            .on("mousemove", function(){return self.tooltip_div.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
+            .on("mouseout", function(){return self.tooltip_div.style("visibility", "hidden");})
             .attr("class", "bar")
             .attr("x", 1)
             .attr("y", function (d) {return self.y(d.name);})
             .attr("height", self.y.bandwidth())
             .transition().duration(self.transition_time)
-            .attr("width", function (d) { return self.x(d[byValue]);});
+            .attr("width", function (d) { return self.x(d[byValue]);})
+            
 
         self.serie.append("text")
             .attr("class", "bartext")
