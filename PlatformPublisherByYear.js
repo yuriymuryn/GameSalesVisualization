@@ -560,7 +560,7 @@ function PlatformPublisherByYear() {
                     }
                 }
                 data.sort(function (d1,d2) {
-                    return d2.split("-")[1]-d1.split("-")[1];
+                    return parseFloat(d2.split("-")[1].replace( /^\D+/g, ''))-parseFloat(d1.split("-")[1].replace( /^\D+/g, ''));
                 });
                 //console.log(data);
                 self.tooltip_div.style("visibility", "visible").html(data.join("<br\>"));
