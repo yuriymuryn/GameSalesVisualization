@@ -1,1 +1,0 @@
-http://bl.ocks.org/benjchristensen/2657838 (grafico de linhas tem barra vertical)

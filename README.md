@@ -2,28 +2,24 @@
 
 Game Sales visualization using d3.js.
 
-# Visualizations
+Authors:
+- Tiago Almeida
+- Yuriy Muryn
 
-## Top Publishers
+# Visualization
+
+## Top 10 Games
+This visualization shows the top 10 games based on global sales or user/critic ratings for a specified time period.
  
-![alt text](img/vis1.png "Visualization 1")
+![alt text](images/vis1.png "Visualization 1")
 
-Show top publishers by score or sales.
-Publisher info should be grouped by year.
-
-
-## Sales by region & Best-Selling Platform
+## Game sales over time
+This visualization shows the game sales through years. The bars are stacked so it can be easy to visualize global sales and the user can also view the data for a single region (Europe, North America, Japan or Rest of the World). It is also possible to view the sales as a percentage for a given year, making it easier to identify the region with most sales for that year.
  
-![alt text](img/vis2.PNG "Visualization 2&3")
+![alt text](images/vis2.PNG "Visualization 2")
 
-Filter by year.
-Switch between % and sales number in vis 2.
+## Platform and Publisher Sales through time
+At last, in this visualization is presented the evolution of the platforms or publisheres with most video game sales (top 4 when possible) through the years, like an interactive video.
 
+![alt text](images/vis3.PNG "Visualization 3")
 
-## Gender distribution by year
-http://bl.ocks.org/dbuezas/9306799
-
-![alt text](img/vis3.PNG "Visualization 4")
-
-Scroll with year and pie chart should adapt.
-Play button.
